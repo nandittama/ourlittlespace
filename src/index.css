@@ -876,14 +876,19 @@ a:focus-visible {
 }
 
 /* Music */
-.music-card {
-  display: grid;
-  gap: 1rem;
-  background: linear-gradient(180deg, #fff2ee, #fff);
-  border: 1px solid var(--border);
+.spotify-wrap {
+  overflow: hidden;
   border-radius: var(--radius);
-  padding: 1.1rem;
+  border: 1px solid var(--border);
   box-shadow: var(--shadow);
+  background: #fff;
+}
+
+.spotify-wrap iframe {
+  display: block;
+  width: 100%;
+  min-height: 352px;
+  border: 0;
 }
 
 .music-card__art {

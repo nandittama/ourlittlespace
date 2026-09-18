@@ -11,7 +11,7 @@ function scrollTo(id, focusSelector) {
   }
 }
 
-export default function QuickActionsSection({ onOpenMemory, onToggleMusic }) {
+export default function QuickActionsSection({ onOpenMemory }) {
   const { person, hasPerson, partnerName } = usePerson()
   const { showToast } = useToast()
   const [hugPulse, setHugPulse] = useState(false)
@@ -53,14 +53,7 @@ export default function QuickActionsSection({ onOpenMemory, onToggleMusic }) {
         <span aria-hidden="true">📸</span>
         Add Memory
       </button>
-      <button
-        type="button"
-        className="qa-btn"
-        onClick={() => {
-          scrollTo('music')
-          onToggleMusic?.()
-        }}
-      >
+      <button type="button" className="qa-btn" onClick={() => scrollTo('music')}>
         <span aria-hidden="true">🎵</span>
         Play Our Song
       </button>

@@ -2,9 +2,9 @@ import Section from '../Section'
 import { PERSON_ONE, PERSON_TWO, getPersonName } from '../../config'
 import { formatTodayShort, isJakartaToday } from '../../utils/date'
 
-export default function TodaySection({ moodOne, moodTwo, notes, nextCountdown }) {
+export default function TodaySection({ moodOne, moodTwo, notes }) {
   const todayNotes = (notes || []).filter((n) => isJakartaToday(n.created_at))
-  const hasAnything = Boolean(moodOne || moodTwo || todayNotes.length || nextCountdown)
+  const hasAnything = Boolean(moodOne || moodTwo || todayNotes.length)
 
   return (
     <Section id="today" title="Today With Us" subtitle="Sedikit kabar dari hari ini.">
@@ -33,12 +33,6 @@ export default function TodaySection({ moodOne, moodTwo, notes, nextCountdown })
                 ? `${todayNotes.length} note hari ini`
                 : 'Belum ada note hari ini'}
             </p>
-            {nextCountdown ? (
-              <p className="today-chip">
-                {nextCountdown.emoji || '✈️'} {nextCountdown.daysLeft} hari menuju{' '}
-                {nextCountdown.title}
-              </p>
-            ) : null}
           </div>
         )}
       </div>

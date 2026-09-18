@@ -2,7 +2,7 @@
 export const COUPLE_CONFIG = {
   personOne: 'Nadhif',
   personTwo: 'Diah',
-  anniversaryDate: '2024-05-30',
+  anniversaryDate: '2026-09-04',
   timezone: 'Asia/Jakarta',
   relationshipVibe: 'Cozy & In Love',
 }
@@ -20,32 +20,13 @@ export const APP_NAME = 'Our Little Space'
 export const APP_TAGLINE = 'Ruang kecil milik kita berdua.'
 export const APP_SUBTITLE = 'Ruang Cinta Nadhif & Diah'
 
-export const COUNTDOWNS = [
-  {
-    id: 'trip',
-    label: 'Next Little Adventure',
-    title: 'Jogja',
-    emoji: '✈️',
-    targetDate: '2026-10-02',
-    kind: 'once',
-  },
-  {
-    id: 'years3',
-    label: 'Our Next Anniversary',
-    title: '3 Years Together',
-    emoji: '❤️',
-    targetDate: '2027-05-30',
-    kind: 'anniversary',
-  },
-]
-
-export const OUR_SONG = {
-  title: 'Kita Bikin Romantis',
-  artist: "MALIQ & D'Essentials",
-  label: 'Our Song',
-  src: '/audio/our-song.mp3',
-  artwork: '/audio/our-song-cover.jpg',
-}
+/**
+ * Spotify playlist embed.
+ * Ganti URL di bawah dengan playlist kalian (Share → Embed → copy src).
+ * Contoh: https://open.spotify.com/embed/playlist/37i9dQZF1DX...
+ */
+export const SPOTIFY_PLAYLIST_EMBED =
+  'https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M?utm_source=generator'
 
 export const DAILY_QUOTES = [
   'Cinta tumbuh dari hal-hal kecil yang dilakukan bersama.',
@@ -53,28 +34,6 @@ export const DAILY_QUOTES = [
   'Dua hati, satu ruang kecil yang tenang.',
   'Cerita terbaik ditulis pelan-pelan, berdampingan.',
   'Bukan tentang sempurna — tentang hadir untuk satu sama lain.',
-]
-
-/** Static timeline — Our Story (no admin needed) */
-export const TIMELINE_EVENTS = [
-  {
-    id: 'begin',
-    date: '2024-05-30',
-    title: 'The Beginning',
-    description: 'Di sini cerita kecil kita dimulai.',
-  },
-  {
-    id: 'rain',
-    date: '2024-07-15',
-    title: 'Our First Trip',
-    description: 'Hari itu kita kehujanan — dan tetap tertawa.',
-  },
-  {
-    id: 'christmas',
-    date: '2024-12-24',
-    title: 'Christmas Together',
-    description: 'Natal pertama yang kita rayakan bersama.',
-  },
 ]
 
 export function getPersonName(personKey) {
