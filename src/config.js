@@ -5,6 +5,8 @@ export const COUPLE_CONFIG = {
   anniversaryDate: '2026-09-04',
   timezone: 'Asia/Jakarta',
   relationshipVibe: 'Cozy & In Love',
+  /** Nomor WA tanpa + / spasi, format lokal OK (08...) */
+  whatsappNumber: '082154549026',
 }
 
 export const PERSON_ONE = 'nadhif'
@@ -15,6 +17,14 @@ export const STORAGE_KEY_PERSON = 'current_person'
 export const ANNIVERSARY_DATE = COUPLE_CONFIG.anniversaryDate
 export const RELATIONSHIP_VIBE = COUPLE_CONFIG.relationshipVibe
 export const TIMEZONE = COUPLE_CONFIG.timezone
+export const WHATSAPP_NUMBER = COUPLE_CONFIG.whatsappNumber
+
+/** Build https://wa.me/62... from local ID number */
+export function getWhatsAppUrl(localNumber = WHATSAPP_NUMBER) {
+  const digits = String(localNumber || '').replace(/\D/g, '')
+  const intl = digits.startsWith('0') ? `62${digits.slice(1)}` : digits
+  return `https://wa.me/${intl}`
+}
 
 export const APP_NAME = 'Our Little Space'
 export const APP_TAGLINE = 'Ruang kecil milik kita berdua.'

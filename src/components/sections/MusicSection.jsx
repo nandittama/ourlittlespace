@@ -20,9 +20,6 @@ export default function MusicSection() {
           style={{ borderRadius: 16 }}
         />
       </div>
-      <p className="muted tiny" style={{ marginTop: '0.65rem', textAlign: 'center' }}>
-        Jika player tidak muncul, pastikan playlist Spotify-nya <strong>public</strong>.
-      </p>
     </Section>
   )
 }

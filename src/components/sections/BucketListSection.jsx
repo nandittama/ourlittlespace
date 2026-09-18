@@ -121,36 +121,38 @@ export default function BucketListSection({ items, onChanged }) {
         </button>
       </form>
 
-      <ul className="todo-list">
-        {items.length === 0 ? (
-          <li className="empty">Belum ada di list. Apa yang ingin kita lakukan bersama?</li>
-        ) : (
-          items.map((item) => (
-            <li key={item.id} className={`todo-row ${item.status === 'completed' ? 'is-done' : ''}`}>
-              <button
-                type="button"
-                className="bucket-check"
-                onClick={() => toggle(item)}
-                disabled={busy || !hasPerson}
-                aria-label={`Tandai ${item.title}`}
-              >
-                {item.status === 'completed' ? '☑' : '☐'}
-              </button>
-              <div className="todo-row__main">
-                <span>{item.title}</span>
-              </div>
-              <button
-                type="button"
-                className="linkish"
-                disabled={busy}
-                onClick={() => setPendingDelete(item.id)}
-              >
-                Hapus
-              </button>
-            </li>
-          ))
-        )}
-      </ul>
+      {items.length === 0 ? (
+        <p className="empty">Belum ada di list. Apa yang ingin kita lakukan bersama?</p>
+      ) : (
+        <div className="scroll-panel scroll-panel--bucket" role="region" aria-label="Bucket list">
+          <ul className="todo-list">
+            {items.map((item) => (
+              <li key={item.id} className={`todo-row ${item.status === 'completed' ? 'is-done' : ''}`}>
+                <button
+                  type="button"
+                  className="bucket-check"
+                  onClick={() => toggle(item)}
+                  disabled={busy || !hasPerson}
+                  aria-label={`Tandai ${item.title}`}
+                >
+                  {item.status === 'completed' ? '☑' : '☐'}
+                </button>
+                <div className="todo-row__main">
+                  <span>{item.title}</span>
+                </div>
+                <button
+                  type="button"
+                  className="linkish"
+                  disabled={busy}
+                  onClick={() => setPendingDelete(item.id)}
+                >
+                  Hapus
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <ConfirmDialog
         open={Boolean(pendingDelete)}

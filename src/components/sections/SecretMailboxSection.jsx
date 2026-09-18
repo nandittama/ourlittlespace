@@ -13,11 +13,19 @@ export default function SecretMailboxSection({ letters, onChanged }) {
   const [content, setContent] = useState('')
   const [busy, setBusy] = useState(false)
 
-  // Surat untuk persona aktif saja
+  // Surat yang menunggu dibaca oleh persona aktif
   const waiting = useMemo(
     () => (letters || []).filter((l) => l.receiver === person),
     [letters, person]
   )
+
+  // Surat yang sudah dikirim ke pasangan dan belum dibuka
+  const outgoingPending = useMemo(
+    () => (letters || []).filter((l) => l.sender === person),
+    [letters, person]
+  )
+
+  const canWrite = hasPerson && outgoingPending.length === 0
 
   const openOne = async () => {
     if (!hasPerson || busy) return
@@ -29,7 +37,7 @@ export default function SecretMailboxSection({ letters, onChanged }) {
     setOpenLetter(letter)
   }
 
-  const closeAndBurn = async () => {
+  const closeLetter = async () => {
     if (!openLetter?.id) {
       setOpenLetter(null)
       return
@@ -39,7 +47,7 @@ export default function SecretMailboxSection({ letters, onChanged }) {
       const { error } = await supabase.from('secret_letters').delete().eq('id', openLetter.id)
       if (error) throw error
       setOpenLetter(null)
-      showToast('Surat sudah dibaca dan hilang 🤍', 'success')
+      showToast('Surat ditutup.', 'success')
       onChanged?.()
     } catch (err) {
       console.error(err)
@@ -51,7 +59,11 @@ export default function SecretMailboxSection({ letters, onChanged }) {
 
   const create = async (e) => {
     e.preventDefault()
-    if (!hasPerson || busy) return
+    if (!canWrite || busy) return
+    if (outgoingPending.length > 0) {
+      showToast('Tunggu sampai surat sebelumnya dibuka dulu.', 'error')
+      return
+    }
     const text = content.trim()
     if (!text) {
       showToast('Tulis suratnya dulu.', 'error')
@@ -68,7 +80,7 @@ export default function SecretMailboxSection({ letters, onChanged }) {
       if (error) throw error
       setContent('')
       setWriting(false)
-      showToast('Surat tersimpan. Sekali dibuka, hilang.', 'success')
+      showToast('Surat tersimpan. Tunggu sampai dibuka.', 'success')
       onChanged?.()
     } catch (err) {
       console.error(err)
@@ -78,11 +90,23 @@ export default function SecretMailboxSection({ letters, onChanged }) {
     }
   }
 
+  const toggleWrite = () => {
+    if (writing) {
+      setWriting(false)
+      return
+    }
+    if (!canWrite) {
+      showToast('Tunggu sampai surat sebelumnya dibuka dulu.', 'error')
+      return
+    }
+    setWriting(true)
+  }
+
   return (
     <Section
       id="mailbox"
       title="Secret Mailbox"
-      subtitle="Sekali dibuka, hilang selamanya."
+      subtitle="Satu surat pada satu waktu — buka dulu baru bisa kirim lagi."
       className="section--secondary"
     >
       <div className="mailbox-card mailbox-card--block">
@@ -91,7 +115,9 @@ export default function SecretMailboxSection({ letters, onChanged }) {
           <p className="muted tiny">
             {waiting.length > 0
               ? `${waiting.length} surat menunggu untukmu...`
-              : 'Belum ada surat rahasia untukmu.'}
+              : outgoingPending.length > 0
+                ? `Surat untuk ${partnerName} masih menunggu dibuka.`
+                : 'Belum ada surat rahasia untukmu.'}
           </p>
         </div>
         <div className="mailbox-actions">
@@ -106,14 +132,16 @@ export default function SecretMailboxSection({ letters, onChanged }) {
           <button
             type="button"
             className="btn btn--ghost btn--sm"
-            onClick={() => setWriting((v) => !v)}
+            onClick={toggleWrite}
+            disabled={busy || (!writing && !canWrite)}
+            title={!canWrite ? 'Tunggu sampai surat sebelumnya dibuka' : undefined}
           >
             {writing ? 'Batal' : 'Tulis surat'}
           </button>
         </div>
       </div>
 
-      {writing ? (
+      {writing && canWrite ? (
         <form className="card form-card" onSubmit={create}>
           <label className="field">
             <span>Untuk {partnerName}</span>
@@ -126,7 +154,7 @@ export default function SecretMailboxSection({ letters, onChanged }) {
               disabled={busy}
             />
           </label>
-          <p className="muted tiny">Surat ini hanya bisa dibuka sekali.</p>
+          <p className="muted tiny">Hanya satu surat aktif. Kirim lagi setelah dibuka.</p>
           <button type="submit" className="btn btn--primary" disabled={busy || !hasPerson}>
             {busy ? 'Menyimpan...' : 'Simpan surat'}
           </button>
@@ -139,14 +167,13 @@ export default function SecretMailboxSection({ letters, onChanged }) {
             <h2>Sebuah surat untukmu</h2>
             <p className="love-note__body">“{openLetter.content}”</p>
             <p className="muted tiny">Dari {getPersonName(openLetter.sender)}</p>
-            <p className="muted tiny">Setelah ditutup, surat ini hilang.</p>
             <button
               type="button"
               className="btn btn--primary"
               disabled={busy}
-              onClick={closeAndBurn}
+              onClick={closeLetter}
             >
-              {busy ? '...' : 'Tutup & hilangkan'}
+              {busy ? '...' : 'Tutup'}
             </button>
           </div>
         </div>

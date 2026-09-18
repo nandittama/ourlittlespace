@@ -17,7 +17,6 @@ const MemoriesSection = forwardRef(function MemoriesSection({ memories, onChange
   const { person, hasPerson } = usePerson()
   const { showToast } = useToast()
   const [open, setOpen] = useState(false)
-  const [expanded, setExpanded] = useState(false)
   const [busy, setBusy] = useState(false)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -51,8 +50,6 @@ const MemoriesSection = forwardRef(function MemoriesSection({ memories, onChange
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [lightbox])
-
-  const visible = expanded ? memories : memories.slice(0, 6)
 
   const create = async (e) => {
     e.preventDefault()
@@ -134,10 +131,8 @@ const MemoriesSection = forwardRef(function MemoriesSection({ memories, onChange
             ✨ Surprise Me
           </button>
         </div>
-        {memories.length > 6 ? (
-          <button type="button" className="linkish" onClick={() => setExpanded((v) => !v)}>
-            {expanded ? 'Tampilkan lebih sedikit' : `Lihat semua (${memories.length})`}
-          </button>
+        {memories.length > 0 ? (
+          <span className="progress-badge">{memories.length} tersimpan</span>
         ) : null}
       </div>
 
@@ -194,22 +189,24 @@ const MemoriesSection = forwardRef(function MemoriesSection({ memories, onChange
       {memories.length === 0 ? (
         <p className="empty">Belum ada memory 🤍 Yuk buat yang pertama.</p>
       ) : (
-        <div className="memory-grid">
-          {visible.map((memory) => (
-            <button
-              key={memory.id}
-              type="button"
-              className="memory-item polaroid"
-              onClick={() => setLightbox(memory)}
-            >
-              <img src={publicUrl(memory.image_url)} alt={memory.title} loading="lazy" />
-              <div className="memory-item__body">
-                <p className="polaroid-date">{formatMonthYear(memory.memory_date)}</p>
-                <h3>{memory.title}</h3>
-                {memory.description ? <p className="tiny">{memory.description}</p> : null}
-              </div>
-            </button>
-          ))}
+        <div className="scroll-panel scroll-panel--memories" role="region" aria-label="Daftar memories">
+          <div className="memory-grid">
+            {memories.map((memory) => (
+              <button
+                key={memory.id}
+                type="button"
+                className="memory-item polaroid"
+                onClick={() => setLightbox(memory)}
+              >
+                <img src={publicUrl(memory.image_url)} alt={memory.title} loading="lazy" />
+                <div className="memory-item__body">
+                  <p className="polaroid-date">{formatMonthYear(memory.memory_date)}</p>
+                  <h3>{memory.title}</h3>
+                  {memory.description ? <p className="tiny">{memory.description}</p> : null}
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
       )}
 

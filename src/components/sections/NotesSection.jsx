@@ -143,56 +143,58 @@ export default function NotesSection({ notes, reactions, onChanged }) {
         </button>
       </form>
 
-      <div className="notes-list">
-        {notes.length === 0 ? (
-          <p className="empty">Belum ada little notes. Mungkin kamu bisa tinggalkan yang pertama? 💌</p>
-        ) : (
-          notes.slice(0, 10).map((note) => {
-            const list = reactionMap[note.id] || []
-            return (
-              <article key={note.id} className="love-note">
-                <p className="love-note__meta">💌 From {getPersonName(note.sender)}</p>
-                <p className="love-note__body">“{note.content}”</p>
-                <div className="love-note__footer">
-                  <span className="muted tiny">{formatNoteWhen(note.created_at)}</span>
-                  <div className="reaction-row">
-                    {REACTIONS.map((r) => {
-                      const count = list.filter((x) => x.reaction_type === r.type).length
-                      const mine = list.some(
-                        (x) => x.person === person && x.reaction_type === r.type
-                      )
-                      return (
+      {notes.length === 0 ? (
+        <p className="empty">Belum ada little notes. Mungkin kamu bisa tinggalkan yang pertama? 💌</p>
+      ) : (
+        <div className="scroll-panel scroll-panel--notes" role="region" aria-label="Daftar love notes">
+          <div className="notes-list">
+            {notes.map((note) => {
+              const list = reactionMap[note.id] || []
+              return (
+                <article key={note.id} className="love-note">
+                  <p className="love-note__meta">💌 From {getPersonName(note.sender)}</p>
+                  <p className="love-note__body">“{note.content}”</p>
+                  <div className="love-note__footer">
+                    <span className="muted tiny">{formatNoteWhen(note.created_at)}</span>
+                    <div className="reaction-row">
+                      {REACTIONS.map((r) => {
+                        const count = list.filter((x) => x.reaction_type === r.type).length
+                        const mine = list.some(
+                          (x) => x.person === person && x.reaction_type === r.type
+                        )
+                        return (
+                          <button
+                            key={r.type}
+                            type="button"
+                            className={`reaction-btn ${mine ? 'is-on' : ''}`}
+                            disabled={busy || !hasPerson}
+                            onClick={() => toggleReaction(note.id, r.type)}
+                            aria-pressed={mine}
+                            aria-label={`Reaksi ${r.emoji}`}
+                          >
+                            {r.emoji}
+                            {count > 0 ? <span>{count}</span> : null}
+                          </button>
+                        )
+                      })}
+                      {hasPerson && note.sender === person ? (
                         <button
-                          key={r.type}
                           type="button"
-                          className={`reaction-btn ${mine ? 'is-on' : ''}`}
-                          disabled={busy || !hasPerson}
-                          onClick={() => toggleReaction(note.id, r.type)}
-                          aria-pressed={mine}
-                          aria-label={`Reaksi ${r.emoji}`}
+                          className="linkish"
+                          disabled={busy}
+                          onClick={() => setPendingDelete(note.id)}
                         >
-                          {r.emoji}
-                          {count > 0 ? <span>{count}</span> : null}
+                          Hapus
                         </button>
-                      )
-                    })}
-                    {hasPerson && note.sender === person ? (
-                      <button
-                        type="button"
-                        className="linkish"
-                        disabled={busy}
-                        onClick={() => setPendingDelete(note.id)}
-                      >
-                        Hapus
-                      </button>
-                    ) : null}
+                      ) : null}
+                    </div>
                   </div>
-                </div>
-              </article>
-            )
-          })
-        )}
-      </div>
+                </article>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       <ConfirmDialog
         open={Boolean(pendingDelete)}
