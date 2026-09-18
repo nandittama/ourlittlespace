@@ -5,6 +5,8 @@ import {
   DEFAULT_PINS,
   STORAGE_KEY_PERSON,
   STORAGE_KEY_LOGGED_IN,
+  DISABLE_LOGIN,
+  DEV_AUTO_PERSON,
   getPersonName,
   getPersonConfig,
 } from '../config'
@@ -22,11 +24,17 @@ function readStoredPerson() {
 }
 
 function readLoggedIn() {
+  if (DISABLE_LOGIN) return true
   try {
     return localStorage.getItem(STORAGE_KEY_LOGGED_IN) === 'true' && Boolean(readStoredPerson())
   } catch {
     return false
   }
+}
+
+function getInitialPerson() {
+  if (DISABLE_LOGIN) return DEV_AUTO_PERSON
+  return readLoggedIn() ? readStoredPerson() : null
 }
 
 export function getStoredPin(personKey) {
@@ -42,10 +50,16 @@ export function getStoredPin(personKey) {
 }
 
 export function PersonProvider({ children }) {
-  const [person, setPersonState] = useState(() => (readLoggedIn() ? readStoredPerson() : null))
+  const [person, setPersonState] = useState(() => getInitialPerson())
   const [isLoggedIn, setIsLoggedIn] = useState(() => readLoggedIn())
 
   const login = useCallback((personKey, pin) => {
+    if (DISABLE_LOGIN) {
+      setPersonState(DEV_AUTO_PERSON)
+      setIsLoggedIn(true)
+      return { ok: true }
+    }
+
     if (personKey !== PERSON_ONE && personKey !== PERSON_TWO) {
       return { ok: false, error: 'Pilih nama dulu.' }
     }
@@ -66,6 +80,12 @@ export function PersonProvider({ children }) {
   }, [])
 
   const logout = useCallback(() => {
+    if (DISABLE_LOGIN) {
+      setPersonState(DEV_AUTO_PERSON)
+      setIsLoggedIn(true)
+      return
+    }
+
     setPersonState(null)
     setIsLoggedIn(false)
     try {
@@ -115,6 +135,7 @@ export function PersonProvider({ children }) {
       personName: person ? getPersonName(person) : null,
       hasPerson: Boolean(person) && isLoggedIn,
       isLoggedIn,
+      loginDisabled: DISABLE_LOGIN,
       login,
       logout,
       changePin,

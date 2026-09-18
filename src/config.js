@@ -34,3 +34,11 @@ export function getPersonConfig(key) {
 export const APP_NAME = 'Our Little Space'
 export const STORAGE_KEY_PERSON = 'current_person'
 export const STORAGE_KEY_LOGGED_IN = 'is_logged_in'
+
+/**
+ * Development shortcut:
+ * true  = skip PIN login, open as Nadhif
+ * false = normal PIN login
+ */
+export const DISABLE_LOGIN = true
+export const DEV_AUTO_PERSON = PERSON_ONE // Nadhif
