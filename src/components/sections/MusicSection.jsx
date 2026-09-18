@@ -5,7 +5,7 @@ export default function MusicSection() {
   const embedSrc = getSpotifyEmbedUrl(SPOTIFY_PLAYLIST_URL)
 
   return (
-    <Section id="music" title="Our Playlist" subtitle="Lagu-lagu kecil untuk kita.">
+    <Section id="music" title="Our Playlist" subtitle="Lagu yang kayanya kita suka">
       <div className="spotify-wrap">
         <iframe
           title="Spotify playlist"

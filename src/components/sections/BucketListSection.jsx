@@ -92,7 +92,7 @@ export default function BucketListSection({ items, onChanged, onPatchItem }) {
     <Section
       id="bucket"
       title="Our Little Bucket List"
-      subtitle="Hal-hal yang ingin kita lakukan bersama."
+      subtitle="Hal-hal yang ingin di lakukan"
       className="section--secondary"
     >
       {total > 0 ? (
