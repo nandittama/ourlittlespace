@@ -1,9 +1,9 @@
-import { APP_NAME, APP_TAGLINE, PERSONS } from '../../config'
+import { APP_NAME, APP_TAGLINE } from '../../config'
 import { formatTodayLong, getGreeting } from '../../utils/date'
 import { usePerson } from '../../context/PersonContext'
 
 export default function HeroSection() {
-  const { personName, hasPerson, setPerson } = usePerson()
+  const { personName, hasPerson, openPicker } = usePerson()
 
   return (
     <section className="hero">
@@ -19,13 +19,7 @@ export default function HeroSection() {
           </a>
           <p className="hero__as muted">
             You&apos;re {personName} ·{' '}
-            <button
-              type="button"
-              className="linkish"
-              onClick={() =>
-                document.getElementById('settings')?.scrollIntoView({ behavior: 'smooth' })
-              }
-            >
+            <button type="button" className="linkish" onClick={openPicker}>
               Switch
             </button>
           </p>
@@ -33,19 +27,7 @@ export default function HeroSection() {
       ) : (
         <>
           <h1 className="hero__greeting">Welcome</h1>
-          <p className="muted">Who are you?</p>
-          <div className="person-pick">
-            {PERSONS.map((p) => (
-              <button
-                key={p.key}
-                type="button"
-                className="person-pick__btn"
-                onClick={() => setPerson(p.key)}
-              >
-                {p.name}
-              </button>
-            ))}
-          </div>
+          <p className="muted">Pilih siapa yang memakai dulu.</p>
         </>
       )}
     </section>

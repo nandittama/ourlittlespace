@@ -1,16 +1,20 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 
-export function useSpaceData() {
+export function useSpaceData(enabled = true) {
   const [moods, setMoods] = useState([])
   const [notes, setNotes] = useState([])
   const [todos, setTodos] = useState([])
   const [memories, setMemories] = useState([])
   const [messages, setMessages] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(Boolean(enabled))
   const [error, setError] = useState(false)
 
   const refresh = useCallback(async () => {
+    if (!enabled) {
+      setLoading(false)
+      return
+    }
     if (!isSupabaseConfigured) {
       setError(true)
       setLoading(false)
@@ -63,7 +67,7 @@ export function useSpaceData() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [enabled])
 
   useEffect(() => {
     refresh()

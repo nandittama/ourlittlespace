@@ -257,6 +257,45 @@ textarea:focus {
   border-color: var(--primary);
 }
 
+.person-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: rgba(41, 38, 38, 0.45);
+}
+
+.person-modal__card {
+  width: min(100%, 360px);
+  padding: 1.5rem 1.25rem 1.25rem;
+  border-radius: var(--radius);
+  background: #fff;
+  border: 1px solid var(--border);
+  text-align: center;
+  box-shadow: 0 12px 40px rgba(41, 38, 38, 0.12);
+}
+
+.person-modal__card h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.35rem;
+}
+
+.person-modal__card .muted {
+  margin: 0 0 0.25rem;
+}
+
+.person-modal__card .person-pick {
+  margin-top: 1rem;
+  max-width: none;
+}
+
+.person-modal__cancel {
+  margin-top: 0.85rem;
+  width: 100%;
+}
+
 /* Mood */
 .mood-duo {
   display: grid;
