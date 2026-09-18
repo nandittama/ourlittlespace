@@ -21,12 +21,36 @@ export const APP_TAGLINE = 'Ruang kecil milik kita berdua.'
 export const APP_SUBTITLE = 'Ruang Cinta Nadhif & Diah'
 
 /**
- * Spotify playlist embed.
- * Ganti URL di bawah dengan playlist kalian (Share → Embed → copy src).
- * Contoh: https://open.spotify.com/embed/playlist/37i9dQZF1DX...
+ * Spotify playlist — boleh paste link biasa ATAU embed.
+ * Contoh biasa: https://open.spotify.com/playlist/xxxxx
+ * Contoh embed: https://open.spotify.com/embed/playlist/xxxxx
  */
-export const SPOTIFY_PLAYLIST_EMBED =
-  'https://open.spotify.com/playlist/0qp6l8oRyyoNQdrnFldyJe?si=69c862639658404c&pt=3c04dfff289b67579206ca13c7bb47b0'
+export const SPOTIFY_PLAYLIST_URL =
+  'https://open.spotify.com/playlist/0qp6l8oRyyoNQdrnFldyJe'
+
+/** Convert open.spotify.com links → embeddable iframe src */
+export function getSpotifyEmbedUrl(url) {
+  if (!url) return ''
+  try {
+    const u = new URL(url.trim())
+    // already embed
+    if (u.pathname.includes('/embed/')) {
+      u.search = 'utm_source=generator'
+      return u.toString()
+    }
+    // /playlist/ID or /album/ID or /track/ID
+    const match = u.pathname.match(/^\/(playlist|album|track)\/([a-zA-Z0-9]+)/)
+    if (match) {
+      return `https://open.spotify.com/embed/${match[1]}/${match[2]}?utm_source=generator`
+    }
+  } catch {
+    /* ignore */
+  }
+  return url
+}
+
+// back-compat
+export const SPOTIFY_PLAYLIST_EMBED = getSpotifyEmbedUrl(SPOTIFY_PLAYLIST_URL)
 
 export const DAILY_QUOTES = [
   'Cinta tumbuh dari hal-hal kecil yang dilakukan bersama.',
