@@ -11,12 +11,12 @@ export default function AppLayout() {
     <div className="app-shell">
       <Sidebar />
       <div className="app-main">
-        <header className="mobile-header">
+        <header className="mobile-header mobile-header--minimal">
           <Link to="/" className="mobile-header__brand">
             {APP_NAME} <span aria-hidden="true">❤️</span>
           </Link>
-          <Link to="/profile" className="mobile-header__profile">
-            {personName || 'Profile'}
+          <Link to="/profile" className="avatar avatar--sm" aria-label="Profile">
+            {(personName || 'U').slice(0, 1)}
           </Link>
         </header>
         <main className="app-content">

@@ -47,3 +47,13 @@ export function formatRelativeTime(dateValue) {
   if (diffDay < 7) return `${diffDay}d ago`
   return formatShortDate(dateValue)
 }
+
+export function getDaysTogether(startDateStr) {
+  if (!startDateStr) return 0
+  const start = new Date(`${startDateStr}T00:00:00`)
+  const now = getJakartaDate()
+  const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate())
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const diff = Math.floor((today - startDay) / 86400000)
+  return Math.max(0, diff + 1)
+}

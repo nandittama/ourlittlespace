@@ -13,8 +13,8 @@ export const DEFAULT_PINS = {
 }
 
 export const PERSONS = [
-  { key: PERSON_ONE, name: PERSON_ONE_NAME, pinKey: 'pin_nadhif' },
-  { key: PERSON_TWO, name: PERSON_TWO_NAME, pinKey: 'pin_diah' },
+  { key: PERSON_ONE, name: PERSON_ONE_NAME, pinKey: 'pin_nadhif', tag: 'Hubby' },
+  { key: PERSON_TWO, name: PERSON_TWO_NAME, pinKey: 'pin_diah', tag: 'Wifey' },
 ]
 
 export function getPersonName(key) {
@@ -34,6 +34,7 @@ export function getPersonConfig(key) {
 export const APP_NAME = 'Our Little Space'
 export const STORAGE_KEY_PERSON = 'current_person'
 export const STORAGE_KEY_LOGGED_IN = 'is_logged_in'
+export const STORAGE_KEY_BATTERY = 'social_battery'
 
 /**
  * Development shortcut:
@@ -42,3 +43,12 @@ export const STORAGE_KEY_LOGGED_IN = 'is_logged_in'
  */
 export const DISABLE_LOGIN = true
 export const DEV_AUTO_PERSON = PERSON_ONE // Nadhif
+
+/** Relationship / ambience (edit freely) */
+export const RELATIONSHIP_START = '2026-09-04' // YYYY-MM-DD
+export const SPACE_LOCATION = 'Together'
+export const SPACE_WEATHER = 'Warm day'
+export const PARTNER_ROLE_TAG = {
+  [PERSON_ONE]: 'Hubby',
+  [PERSON_TWO]: 'Wifey',
+}
