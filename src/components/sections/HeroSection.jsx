@@ -1,9 +1,9 @@
-import { APP_NAME, APP_TAGLINE } from '../../config'
+import { APP_NAME, APP_TAGLINE, PERSONS } from '../../config'
 import { formatTodayLong, getGreeting } from '../../utils/date'
 import { usePerson } from '../../context/PersonContext'
 
 export default function HeroSection() {
-  const { personName, hasPerson, setPerson, persons } = usePerson()
+  const { personName, hasPerson, setPerson } = usePerson()
 
   return (
     <section className="hero">
@@ -35,7 +35,7 @@ export default function HeroSection() {
           <h1 className="hero__greeting">Welcome</h1>
           <p className="muted">Who are you?</p>
           <div className="person-pick">
-            {persons.map((p) => (
+            {PERSONS.map((p) => (
               <button
                 key={p.key}
                 type="button"
