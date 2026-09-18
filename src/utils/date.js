@@ -11,11 +11,11 @@ export function getGreeting(displayName) {
   const hour = getJakartaDate().getHours()
   const name = displayName || 'there'
 
-  if (hour >= 5 && hour < 11) {
+  if (hour >= 5 && hour < 12) {
     return `Good morning, ${name}`
   }
-  if (hour >= 11 && hour < 17) {
-    return `Hope your day is going well, ${name}`
+  if (hour >= 12 && hour < 17) {
+    return `Good afternoon, ${name}`
   }
   if (hour >= 17 && hour < 21) {
     return `Good evening, ${name}`

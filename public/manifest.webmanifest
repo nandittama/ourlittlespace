@@ -1,11 +1,11 @@
 {
   "name": "Our Little Space",
   "short_name": "Little Space",
-  "description": "A simple shared space for two people.",
+  "description": "A little place for us.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#FFF9F7",
-  "theme_color": "#E88B95",
+  "theme_color": "#D9828B",
   "icons": [
     {
       "src": "/favicon.svg",

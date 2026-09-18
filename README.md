@@ -1,51 +1,25 @@
 # Our Little Space
 
-Private-feeling digital space for two people — simple, light, and personal.
+A little place for us — **one-page relationship space**.
 
-## Login (PIN lokal)
+Open → scroll → interact.
 
-Website memakai **login PIN sederhana di frontend** (bukan Supabase Auth).
+## Concept
 
-Akun default:
+Tidak ada login, navbar, sidebar, atau bottom navigation.
+Semua fitur ada di **satu halaman** yang di-scroll vertikal.
 
-| Nama | PIN |
-|------|-----|
-| Nadhif | `2104` |
-| Diah | `0421` |
+## Features
 
-PIN bisa diganti di halaman **Profile**. PIN disimpan di `localStorage` perangkat (`pin_nadhif` / `pin_diah`).
-
-> Ini hanya proteksi ringan. Siapa pun yang punya URL tetap bisa melihat data di Supabase jika tahu cara. Jangan simpan data sensitif.
-
-## Important: data tetap semi-publik
-
-Website ini sengaja sederhana. Data di Supabase dapat diakses dengan anon key.
-
-Jangan menyimpan:
-
-- Password / kredensial penting
-- Nomor identitas
-- Alamat pribadi
-- Nomor telepon
-- Informasi finansial
-
-Hanya cocok untuk mood, catatan sederhana, ide kegiatan, foto kenangan, dan pesan singkat.
-
-## Tech stack
-
-- **Frontend:** React + Vite + React Router
-- **Backend:** Supabase (PostgreSQL + Storage only — **no Auth**)
-- **Deploy:** Vercel
-- **Identity:** PIN login + `localStorage` (`current_person`, `is_logged_in`)
-
-## Names
-
-Edit [`src/config.js`](src/config.js):
-
-```js
-export const PERSON_ONE_NAME = 'Nadhif' // kamu
-export const PERSON_TWO_NAME = 'Diah'   // dia
-```
+1. Hero / greeting + pilih identitas
+2. Mood
+3. Today summary
+4. Little Notes
+5. Things To Do
+6. Random Date
+7. Memories (foto via Supabase Storage)
+8. Quick Messages
+9. Little settings + footer
 
 ## Setup
 
@@ -57,42 +31,27 @@ cp .env.example .env
 Isi:
 
 ```env
-VITE_SUPABASE_URL=https://your-project-ref.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-public-key
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
 ```
 
-> URL harus domain project saja, **tanpa** `/rest/v1/`.
-
-Jalankan SQL di [`supabase/schema.sql`](supabase/schema.sql), lalu:
+Jalankan SQL: `supabase/schema.sql`
 
 ```bash
 npm run dev
 npm run build
 ```
 
-## Features
+## Identity
 
-| Feature | Route |
-|--------|-------|
-| Login PIN | `/login` |
-| Home | `/` |
-| Mood | `/mood` |
-| Notes | `/notes` |
-| Things To Do | `/things-to-do` |
-| Memories | `/memories` |
-| Profile + ganti PIN | `/profile` |
+Disimpan di `localStorage`:
 
-Fitur **Surprise Me / Random Date sudah dihapus**.
+- `current_person` = `kamu` | `dia`
+- `display_name_kamu` / `display_name_dia` (opsional)
 
-## Deploy (GitHub → Vercel)
+Default nama di `src/config.js`.
 
-1. Push ke GitHub
-2. Import di Vercel
-3. Set env: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
-4. Deploy
+## Catatan
 
-Setiap `git push` ke `main` akan auto-update website.
-
-## License
-
-Private / personal use.
+Website ini sengaja public. Jangan simpan data sensitif.
+Hanya gunakan anon key di frontend.
