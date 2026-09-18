@@ -26,7 +26,7 @@ export const APP_SUBTITLE = 'Ruang Cinta Nadhif & Diah'
  * Contoh: https://open.spotify.com/embed/playlist/37i9dQZF1DX...
  */
 export const SPOTIFY_PLAYLIST_EMBED =
-  'https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M?utm_source=generator'
+  'https://open.spotify.com/playlist/0qp6l8oRyyoNQdrnFldyJe?si=69c862639658404c&pt=3c04dfff289b67579206ca13c7bb47b0'
 
 export const DAILY_QUOTES = [
   'Cinta tumbuh dari hal-hal kecil yang dilakukan bersama.',
