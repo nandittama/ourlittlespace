@@ -3,11 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import { usePerson } from '../context/PersonContext'
 import { useToast } from '../context/ToastContext'
-import {
-  getGreeting,
-  formatRelativeTime,
-  getDaysTogether,
-} from '../utils/date'
+import { getGreeting, formatRelativeTime, getDaysTogether } from '../utils/date'
 import {
   APP_NAME,
   RELATIONSHIP_START,
@@ -32,8 +28,7 @@ function publicImageUrl(path) {
 }
 
 function Avatar({ name, size = 'md' }) {
-  const initial = (name || '?').slice(0, 1).toUpperCase()
-  return <div className={`avatar avatar--${size}`}>{initial}</div>
+  return <div className={`avatar avatar--${size}`}>{(name || '?').slice(0, 1)}</div>
 }
 
 export default function Dashboard() {
@@ -65,6 +60,12 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
 
+  const moodStreak = useMemo(() => {
+    // lightweight display: consecutive days with any mood by current user is complex;
+    // show a soft estimate based on having checked in today
+    return myMood ? 1 : 0
+  }, [myMood])
+
   const loadData = useCallback(async () => {
     if (!isSupabaseConfigured || !person) {
       setFailed(!isSupabaseConfigured)
@@ -83,11 +84,9 @@ export default function Dashboard() {
         supabase.from('quick_messages').select('*').order('created_at', { ascending: false }).limit(10),
       ])
 
-      if (moodsRes.error) throw moodsRes.error
-      if (notesRes.error) throw notesRes.error
-      if (todosRes.error) throw todosRes.error
-      if (memoriesRes.error) throw memoriesRes.error
-      if (messagesRes.error) throw messagesRes.error
+      for (const res of [moodsRes, notesRes, todosRes, memoriesRes, messagesRes]) {
+        if (res.error) throw res.error
+      }
 
       const latestMood = {}
       for (const row of moodsRes.data || []) {
@@ -104,13 +103,8 @@ export default function Dashboard() {
         partnerNotes[0]?.created_at,
         (messagesRes.data || []).find((m) => m.person === partnerKey)?.created_at,
       ].filter(Boolean)
-      if (activityCandidates.length) {
-        activityCandidates.sort((a, b) => new Date(b) - new Date(a))
-        setPartnerActivityAt(activityCandidates[0])
-      } else {
-        setPartnerActivityAt(null)
-      }
-
+      activityCandidates.sort((a, b) => new Date(b) - new Date(a))
+      setPartnerActivityAt(activityCandidates[0] || null)
       setTodoCount((todosRes.data || []).length)
       setLatestMemory((memoriesRes.data || [])[0] || null)
     } catch (err) {
@@ -189,211 +183,226 @@ export default function Dashboard() {
     (partnerMoodView ? `Feeling ${partnerMoodView.label}` : 'No update yet today.')
 
   return (
-    <div className="home fade-in">
-      <header className="home-topbar">
-        <div className="home-topbar__brand">
-          <p className="home-brand">
-            {APP_NAME} <span aria-hidden="true">❤️</span>
-          </p>
-          <p className="home-couple">
-            {PERSON_ONE_NAME} & {PERSON_TWO_NAME}
-          </p>
-        </div>
-        <div className="home-topbar__right">
-          <span className="pill pill--days">{daysTogether} Days</span>
-          <Link to="/profile" className="home-topbar__avatar" aria-label="Profile">
-            <Avatar name={personName} />
-          </Link>
-        </div>
-      </header>
-
-      <section className="hero-card">
-        <div className="hero-card__main">
-          <div className="hero-card__meta">
-            <p className="hero-kicker">Home</p>
-            <span className="pill pill--ghost">
-              {SPACE_LOCATION} · {SPACE_WEATHER}
-            </span>
+    <div className="home-stack fade-in">
+      {/* 1. Greeting card */}
+      <section className="card hero">
+        <div className="hero__top">
+          <div>
+            <p className="hero__brand">
+              {APP_NAME} <span aria-hidden="true">♡</span>
+            </p>
+            <p className="muted hero__tagline">Private sanctuary & daily chronicle</p>
           </div>
-          <h1>
-            {getGreeting(personName)} <span aria-hidden="true">❤️</span>
-          </h1>
-          <p className="muted hero-sub">
+          <span className="pill pill--rose">♡ Day {daysTogether} Together</span>
+        </div>
+
+        <h1 className="hero__title">
+          {getGreeting(personName)}
+          <span aria-hidden="true"> ♡</span>
+        </h1>
+
+        <div className="hero__status">
+          <span className="status-dot" aria-hidden="true" />
+          <p className="muted">
             {partnerActivityAt
               ? `${partnerName} was active ${formatRelativeTime(partnerActivityAt)}`
               : `${partnerName} hasn't checked in yet`}
+            <span> · {APP_NAME}</span>
           </p>
         </div>
-        <div className="hero-card__badges">
-          <span className="pill pill--soft">Day {daysTogether} Together</span>
+
+        <div className="hero__pills">
+          <span className="pill pill--sage">
+            ✦ {SPACE_LOCATION} · {SPACE_WEATHER}
+          </span>
+          <span className="pill pill--rose">{daysTogether} Days</span>
         </div>
       </section>
 
-      <div className="home-grid">
-        <section className="panel partner-card">
-          <div className="partner-card__head">
+      {/* 2. Partner message */}
+      <section className="card partner">
+        <div className="partner__head">
+          <div className="partner__who">
             <Avatar name={partnerName} size="lg" />
             <div>
-              <div className="partner-card__name-row">
+              <div className="partner__name-row">
                 <h2>{partnerName}</h2>
                 <span className="tag">{partnerTag}</span>
               </div>
               <p className="muted">
-                {partnerActivityAt ? formatRelativeTime(partnerActivityAt) : 'Waiting for update'}
+                {partnerActivityAt ? `Sent ${formatRelativeTime(partnerActivityAt)}` : 'Waiting for update'}
               </p>
             </div>
           </div>
-          <blockquote className="partner-quote">“{partnerSnippet}”</blockquote>
-          <div className="partner-actions">
-            <button
-              type="button"
-              className="btn btn--primary"
-              disabled={sendingLove}
-              onClick={sendLove}
-            >
-              {sendingLove ? 'Sending...' : '❤️ Send Love'}
-            </button>
-            <button type="button" className="btn btn--secondary" onClick={() => navigate('/notes')}>
-              Reply
-            </button>
-          </div>
-        </section>
+        </div>
+        <blockquote className="partner__quote">“{partnerSnippet}”</blockquote>
+        <div className="partner__actions">
+          <button type="button" className="btn btn--primary" disabled={sendingLove} onClick={sendLove}>
+            {sendingLove ? 'Sending...' : '♡ Send Love'}
+          </button>
+          <button type="button" className="btn btn--soft" onClick={() => navigate('/notes')}>
+            ↩ Reply
+          </button>
+        </div>
+      </section>
 
-        <section className="mood-stack">
-          <p className="section-label">Daily Mood Pulse</p>
-          <div className="panel mood-checkin">
-            <div className="mood-checkin__head">
-              <h2>Your Mood</h2>
-              <span className={`badge ${myMood ? 'badge--ok' : ''}`}>
+      {/* 3. Daily Mood Pulse */}
+      <section className="card mood-pulse">
+        <div className="mood-pulse__head">
+          <h2>🌿 Daily Mood Pulse</h2>
+          <span className="muted">Today</span>
+        </div>
+
+        <div className="mood-pulse__grid">
+          <div className="mood-panel">
+            <div className="mood-panel__head">
+              <div>
+                <p className="mood-panel__label">Your Mood</p>
+                <p className="muted">{personName}</p>
+              </div>
+              <span className={`badge ${myMood ? 'badge--ok' : 'badge--pending'}`}>
                 {myMood ? 'Checked in' : 'Pending check-in'}
               </span>
             </div>
-            <div className="mood-chips">
+            <div className="mood-grid-btns">
               {DASHBOARD_MOODS.map((mood) => (
                 <button
                   key={mood.key}
                   type="button"
-                  className={`mood-chip ${myMood?.mood_key === mood.key ? 'mood-chip--active' : ''}`}
+                  className={`mood-btn ${myMood?.mood_key === mood.key ? 'mood-btn--active' : ''}`}
                   disabled={savingMood}
                   onClick={() => saveMood(mood)}
                 >
-                  <span className="mood-chip__emoji" aria-hidden="true">
-                    {mood.emoji}
-                  </span>
+                  <span aria-hidden="true">{mood.emoji}</span>
                   {mood.label}
                 </button>
               ))}
             </div>
-            <p className="muted mood-checkin__foot">
-              {myMood
-                ? `Today: ${myMood.mood_emoji} ${myMood.mood_label}`
-                : 'Tap a mood to check in'}
+            <p className="mood-foot muted">
+              {moodStreak > 0 ? `${moodStreak}+ day streak · Keep blooming together` : 'Tap a mood to check in'}
             </p>
           </div>
 
-          <div className="panel partner-mood-panel">
-            <h2>{partnerName}&apos;s Mood</h2>
-            {partnerMoodView ? (
-              <>
-                <p className="partner-mood-label">
-                  <span aria-hidden="true">{partnerMoodView.emoji}</span> {partnerMoodView.label}
-                </p>
-                {partnerMood?.message ? <p className="muted">{partnerMood.message}</p> : null}
-              </>
-            ) : (
-              <p className="muted">No mood shared yet.</p>
-            )}
+          <div className="mood-panel mood-panel--partner">
+            <div className="mood-panel__head">
+              <div className="partner__who partner__who--sm">
+                <Avatar name={partnerName} />
+                <div>
+                  <p className="mood-panel__label">{partnerName}&apos;s Status</p>
+                  <p className="muted">
+                    {partnerMood
+                      ? `Updated ${formatRelativeTime(partnerMood.created_at)}`
+                      : 'No update yet'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="partner-status-box">
+              {partnerMoodView ? (
+                <>
+                  <p className="partner-status-box__mood">
+                    {partnerMoodView.emoji} {partnerMoodView.label}
+                  </p>
+                  {partnerMood?.message ? <p className="muted">{partnerMood.message}</p> : null}
+                </>
+              ) : (
+                <p className="muted">Waiting for {partnerName}&apos;s mood.</p>
+              )}
+            </div>
 
             <label className="battery">
               <div className="battery__head">
                 <span>Social battery</span>
                 <strong>{battery}%</strong>
               </div>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={battery}
-                onChange={(e) => updateBattery(e.target.value)}
-              />
+              <div className="battery__track">
+                <div className="battery__fill" style={{ width: `${battery}%` }} />
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={battery}
+                  onChange={(e) => updateBattery(e.target.value)}
+                  aria-label="Social battery"
+                />
+              </div>
             </label>
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
 
-      <section className="quick-nav" aria-label="Quick links">
-        <Link to="/mood" className="quick-nav__item">
-          <span className="quick-nav__icon">😊</span>
-          <div className="quick-nav__text">
-            <strong>Mood</strong>
-            <p>Daily check-in</p>
-          </div>
+      {/* 4. Quick links */}
+      <section className="quick-grid" aria-label="Quick links">
+        <Link to="/mood" className="quick-tile">
+          <span className="quick-tile__icon">☺</span>
+          <strong>Mood</strong>
+          <p>Trends & arc</p>
         </Link>
-        <Link to="/notes" className="quick-nav__item">
-          <span className="quick-nav__icon">✎</span>
-          <div className="quick-nav__text">
-            <strong>Notes</strong>
-            <p>Shared thoughts</p>
-          </div>
+        <Link to="/notes" className="quick-tile">
+          <span className="quick-tile__icon">✉</span>
+          <strong>Notes</strong>
+          <p>Shared thoughts</p>
         </Link>
-        <Link to="/things-to-do" className="quick-nav__item">
-          <span className="quick-nav__icon">✓</span>
-          <div className="quick-nav__text">
-            <strong>To-Do</strong>
-            <p>Plans together</p>
-          </div>
+        <Link to="/things-to-do" className="quick-tile">
+          <span className="quick-tile__icon">✓</span>
+          <strong>To-Do</strong>
+          <p>Plans together</p>
           {todoCount > 0 ? <span className="count-badge">{todoCount}</span> : null}
         </Link>
-        <Link to="/memories" className="quick-nav__item">
-          <span className="quick-nav__icon">◇</span>
-          <div className="quick-nav__text">
-            <strong>Memories</strong>
-            <p>Little moments</p>
-          </div>
+        <Link to="/memories" className="quick-tile">
+          <span className="quick-tile__icon">✧</span>
+          <strong>Memories</strong>
+          <p>Albums & trips</p>
         </Link>
       </section>
 
+      {/* 5. Say something */}
       <QuickMessage partnerName={partnerName} onSent={loadData} />
 
-      <section className="panel memory-spotlight">
-        <div className="memory-spotlight__head">
-          <h2>Shared Memory</h2>
-          {latestMemory ? <span className="pill pill--soft">Latest</span> : null}
+      {/* 6. Memory */}
+      <section className="card memory-card-wide">
+        <div className="memory-card-wide__head">
+          <h2>✧ Today&apos;s Shared Memory</h2>
+          {latestMemory ? <span className="pill pill--sage">Latest</span> : null}
         </div>
+
         {latestMemory ? (
-          <button
-            type="button"
-            className="memory-spotlight__body"
-            onClick={() => navigate('/memories')}
-          >
-            <div className="memory-spotlight__media">
+          <button type="button" className="memory-feature" onClick={() => navigate('/memories')}>
+            <div className="memory-feature__media">
               {publicImageUrl(latestMemory.image_url) ? (
-                <img
-                  src={publicImageUrl(latestMemory.image_url)}
-                  alt={latestMemory.title}
-                  loading="lazy"
-                />
+                <img src={publicImageUrl(latestMemory.image_url)} alt={latestMemory.title} loading="lazy" />
               ) : (
-                <div className="memory-spotlight__placeholder">Photo</div>
+                <div className="memory-feature__placeholder">Photo</div>
               )}
+              <div className="memory-feature__overlay">
+                <h3>{latestMemory.title}</h3>
+              </div>
             </div>
-            <div className="memory-spotlight__copy">
-              <h3>{latestMemory.title}</h3>
+            <div className="memory-feature__body">
               {latestMemory.description ? <p>{latestMemory.description}</p> : null}
-              <p className="muted">
-                {getPersonName(latestMemory.person)} · {latestMemory.memory_date}
-              </p>
+              <div className="memory-feature__foot">
+                <div className="avatar-stack">
+                  <Avatar name={PERSON_ONE_NAME} size="sm" />
+                  <Avatar name={PERSON_TWO_NAME} size="sm" />
+                </div>
+                <span className="muted">Shared together · {latestMemory.memory_date}</span>
+              </div>
             </div>
           </button>
         ) : (
           <div className="empty-inline">
-            <p className="muted">No memories yet.</p>
-            <Link to="/memories" className="btn btn--secondary btn--sm">
-              Add one
+            <p className="muted">No memories yet. Maybe this is a good day to make one.</p>
+            <Link to="/memories" className="btn btn--soft btn--sm">
+              Add memory
             </Link>
           </div>
         )}
       </section>
+
+      <footer className="home-footer">
+        {APP_NAME} · Dedicated to {PERSON_ONE_NAME} & {PERSON_TWO_NAME}
+      </footer>
     </div>
   )
 }

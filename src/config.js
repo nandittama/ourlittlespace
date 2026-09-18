@@ -47,7 +47,7 @@ export const DEV_AUTO_PERSON = PERSON_ONE // Nadhif
 /** Relationship / ambience (edit freely) */
 export const RELATIONSHIP_START = '2026-09-04' // YYYY-MM-DD
 export const SPACE_LOCATION = 'Together'
-export const SPACE_WEATHER = 'Warm day'
+export const SPACE_WEATHER = 'Mild breeze'
 export const PARTNER_ROLE_TAG = {
   [PERSON_ONE]: 'Hubby',
   [PERSON_TWO]: 'Wifey',

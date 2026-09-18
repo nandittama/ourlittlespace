@@ -41,18 +41,24 @@ export default function QuickMessage({ onSent, partnerName = 'them' }) {
   }
 
   return (
-    <section className="panel say-something fade-in">
-      <h2>Say Something</h2>
-      <p className="muted">Instant reactions for {partnerName}.</p>
+    <section className="card say-card">
+      <div className="say-card__head">
+        <div>
+          <h2>Say Something ♡</h2>
+          <p className="muted">Instant micro-notes for {partnerName}</p>
+        </div>
+      </div>
 
-      <div className="say-something__row">
+      <div className="say-row">
         {QUICK_MESSAGE_OPTIONS.map((option) => (
           <button
             key={option.type}
             type="button"
-            className="say-chip"
+            className="chip"
             disabled={sending === option.type}
-            onClick={() => send({ type: option.type, message: `${option.emoji} ${option.message}` })}
+            onClick={() =>
+              send({ type: option.type, message: `${option.emoji} ${option.message}` })
+            }
           >
             <span aria-hidden="true">{option.emoji}</span>
             {sending === option.type ? '...' : option.message}
@@ -60,7 +66,7 @@ export default function QuickMessage({ onSent, partnerName = 'them' }) {
         ))}
       </div>
 
-      <form className="say-input" onSubmit={sendCustom}>
+      <form className="whisper" onSubmit={sendCustom}>
         <input
           type="text"
           value={custom}
@@ -68,8 +74,8 @@ export default function QuickMessage({ onSent, partnerName = 'them' }) {
           placeholder={`Write your own whisper for ${partnerName}...`}
           onChange={(e) => setCustom(e.target.value)}
         />
-        <button type="submit" className="say-input__send" disabled={Boolean(sending)} aria-label="Send">
-          ➤
+        <button type="submit" className="whisper__send" disabled={Boolean(sending)} aria-label="Send">
+          ↑
         </button>
       </form>
     </section>
