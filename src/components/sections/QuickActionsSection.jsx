@@ -44,7 +44,7 @@ export default function QuickActionsSection({ onOpenMemory }) {
       </button>
       <button
         type="button"
-        className="qa-btn qa-btn--accent"
+        className="qa-btn"
         onClick={() => {
           scrollTo('memories')
           onOpenMemory?.()

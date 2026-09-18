@@ -122,6 +122,8 @@ h3 {
   padding: 0.7rem 1.15rem;
   font-weight: 650;
   cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+    transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
 }
 
 .btn--sm {
@@ -135,9 +137,20 @@ h3 {
   cursor: not-allowed;
 }
 
+.btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
 .btn--primary {
   background: var(--primary);
   color: #fff;
+}
+
+.btn--primary:hover:not(:disabled) {
+  background: var(--primary-deep);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(163, 67, 67, 0.25);
 }
 
 .btn--secondary {
@@ -145,14 +158,30 @@ h3 {
   color: var(--text);
 }
 
+.btn--secondary:hover:not(:disabled) {
+  background: var(--primary);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
 .btn--ghost {
   background: transparent;
   color: var(--muted);
 }
 
+.btn--ghost:hover:not(:disabled) {
+  background: var(--secondary);
+  color: var(--primary-deep);
+}
+
 .btn--danger {
   background: var(--primary-deep);
   color: #fff;
+}
+
+.btn--danger:hover:not(:disabled) {
+  background: var(--primary);
+  transform: translateY(-1px);
 }
 
 .linkish {
@@ -162,6 +191,12 @@ h3 {
   font-weight: 650;
   cursor: pointer;
   padding: 0;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.linkish:hover:not(:disabled) {
+  color: var(--primary-deep);
+  text-decoration: underline;
 }
 
 .field {
@@ -355,7 +390,16 @@ a:focus-visible {
   }
   .reveal,
   .qa-btn.is-pulse,
-  .skeleton {
+  .skeleton,
+  .btn,
+  .qa-btn,
+  .mood-choice,
+  .emoji-chip,
+  .reaction-btn,
+  .icon-btn,
+  .bucket-check,
+  .person-pick__btn,
+  .linkish {
     opacity: 1;
     transform: none;
     animation: none;
@@ -546,16 +590,26 @@ a:focus-visible {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: #fff;
+  color: var(--text);
   box-shadow: var(--shadow);
   font-weight: 650;
   font-size: 0.86rem;
   cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+    transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.qa-btn--accent {
+.qa-btn:hover:not(:disabled) {
   background: var(--primary);
   color: #fff;
   border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(163, 67, 67, 0.22);
+}
+
+.qa-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .qa-btn.is-pulse {
@@ -672,6 +726,13 @@ a:focus-visible {
   cursor: pointer;
   font-weight: 600;
   font-size: 0.85rem;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.mood-choice:hover {
+  background: var(--secondary);
+  border-color: var(--primary);
+  transform: translateY(-1px);
 }
 
 .mood-choice.is-active {
@@ -704,6 +765,13 @@ a:focus-visible {
   border: 1px solid var(--border);
   background: var(--bg-soft);
   cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.emoji-chip:hover:not(:disabled) {
+  background: var(--secondary);
+  border-color: var(--primary);
+  transform: translateY(-1px);
 }
 
 .notes-list {
@@ -760,6 +828,13 @@ a:focus-visible {
   background: #fff;
   cursor: pointer;
   font-size: 0.85rem;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.reaction-btn:hover:not(:disabled) {
+  background: var(--blush);
+  border-color: var(--primary);
+  transform: translateY(-1px);
 }
 
 .reaction-btn.is-on {
@@ -951,6 +1026,15 @@ a:focus-visible {
   background: #fff;
   cursor: pointer;
   color: var(--muted);
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.icon-btn:hover {
+  background: var(--blush);
+  color: var(--primary);
+  border-color: var(--primary);
+  transform: translateY(-1px);
 }
 
 .icon-btn.is-on {
@@ -1064,6 +1148,15 @@ a:focus-visible {
   background: var(--bg-soft);
   cursor: pointer;
   flex-shrink: 0;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.bucket-check:hover:not(:disabled) {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  transform: scale(1.05);
 }
 
 .todo-status {
@@ -1124,11 +1217,25 @@ a:focus-visible {
   background: #fff;
   font-weight: 700;
   cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.person-pick__btn:hover {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+  transform: translateY(-1px);
 }
 
 .person-pick__btn.is-active {
   background: var(--secondary);
   border-color: var(--primary);
+}
+
+.person-pick__btn.is-active:hover {
+  background: var(--primary);
+  color: #fff;
 }
 
 .person-modal,
