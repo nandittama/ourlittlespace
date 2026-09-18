@@ -6,7 +6,6 @@ import { isSupabaseConfigured } from '../lib/supabase'
 import ConnectionError from '../components/ConnectionError'
 import PersonPickerModal from '../components/PersonPickerModal'
 import HeroSection from '../components/sections/HeroSection'
-import TodaySection from '../components/sections/TodaySection'
 import QuickActionsSection from '../components/sections/QuickActionsSection'
 import MoodSection from '../components/sections/MoodSection'
 import NotesSection from '../components/sections/NotesSection'
@@ -18,7 +17,7 @@ import SecretMailboxSection from '../components/sections/SecretMailboxSection'
 import FooterSection from '../components/sections/FooterSection'
 
 export default function Home() {
-  const { person, hasPerson } = usePerson()
+  const { hasPerson } = usePerson()
   const memoriesRef = useRef(null)
   const {
     notes,
@@ -37,7 +36,7 @@ export default function Home() {
   if (hasPerson && error) {
     return (
       <div className="page-shell">
-        <HeroSection myMood={null} partnerMood={null} />
+        <HeroSection />
         <div className="connection-error" style={{ minHeight: '40vh' }}>
           <h1>Ada yang kurang beres 🤍</h1>
           <p className="muted">Coba lagi sebentar ya.</p>
@@ -53,14 +52,10 @@ export default function Home() {
 
   const moodOne = latestMoodByPerson(PERSON_ONE)
   const moodTwo = latestMoodByPerson(PERSON_TWO)
-  const myMood = hasPerson ? latestMoodByPerson(person) : null
-  const partnerMood = hasPerson
-    ? latestMoodByPerson(person === PERSON_ONE ? PERSON_TWO : PERSON_ONE)
-    : null
 
   return (
     <div className="page-shell">
-      <HeroSection myMood={myMood} partnerMood={partnerMood} />
+      <HeroSection />
 
       {hasPerson ? (
         loading ? (
@@ -71,7 +66,6 @@ export default function Home() {
           </div>
         ) : (
           <>
-            <TodaySection moodOne={moodOne} moodTwo={moodTwo} notes={notes} />
             <QuickActionsSection onOpenMemory={() => memoriesRef.current?.openUpload?.()} />
             <MoodSection moodOne={moodOne} moodTwo={moodTwo} onChanged={refresh} />
             <NotesSection notes={notes} reactions={reactions} onChanged={refresh} />

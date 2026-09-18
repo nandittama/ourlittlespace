@@ -44,6 +44,8 @@ export default function NotesSection({ notes, reactions, onChanged }) {
     setBusy(true)
     try {
       const { error } = await supabase.from('notes').insert({
+        // person = legacy column (still required on some DBs)
+        person,
         sender: person,
         receiver: getOtherPerson(person),
         content: text,

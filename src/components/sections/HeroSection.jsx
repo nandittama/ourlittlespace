@@ -13,7 +13,7 @@ import {
 } from '../../utils/date'
 import { usePerson } from '../../context/PersonContext'
 
-export default function HeroSection({ myMood, partnerMood }) {
+export default function HeroSection() {
   const { personName, partnerName, hasPerson, switchPerson } = usePerson()
   const days = getDaysTogether(ANNIVERSARY_DATE)
 
@@ -43,43 +43,17 @@ export default function HeroSection({ myMood, partnerMood }) {
         <p className="hero__date muted">Since {formatAnniversaryLabel(ANNIVERSARY_DATE)}</p>
 
         {hasPerson ? (
-          <>
-            <div className="persona-switcher">
-              <div>
-                <p className="persona-switcher__label">Kamu di sini sebagai</p>
-                <p className="persona-switcher__name">
-                  {personName} <span className="online-dot">aktif</span>
-                </p>
-              </div>
-              <button type="button" className="btn btn--secondary btn--sm" onClick={switchPerson}>
-                Ganti ke {partnerName}
-              </button>
+          <div className="persona-switcher">
+            <div>
+              <p className="persona-switcher__label">Kamu di sini sebagai</p>
+              <p className="persona-switcher__name">
+                {personName} <span className="online-dot">aktif</span>
+              </p>
             </div>
-
-            <div className="status-bubbles">
-              <div className="status-bubble status-bubble--a">
-                <span className="avatar-letter" aria-hidden="true">
-                  {personName?.[0]}
-                </span>
-                <p>
-                  {myMood
-                    ? `${myMood.mood_emoji} ${myMood.mood_label}${myMood.message ? ` · ${myMood.message}` : ''}`
-                    : 'Belum check-in hari ini'}
-                </p>
-              </div>
-              <div className="status-bubble status-bubble--b">
-                <span className="avatar-letter avatar-letter--b" aria-hidden="true">
-                  {partnerName?.[0]}
-                </span>
-                <p>
-                  {partnerMood
-                    ? `${partnerMood.mood_emoji} ${partnerMood.mood_label}${partnerMood.message ? ` · ${partnerMood.message}` : ''}`
-                    : 'Belum check-in hari ini'}
-                </p>
-              </div>
-            </div>
-            <p className="hero__scroll muted">Geser ke bawah untuk menjelajah</p>
-          </>
+            <button type="button" className="btn btn--secondary btn--sm" onClick={switchPerson}>
+              Ganti ke {partnerName}
+            </button>
+          </div>
         ) : (
           <p className="muted">Pilih siapa yang memakai dulu.</p>
         )}
