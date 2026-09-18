@@ -1,58 +1,101 @@
 -- ============================================================
 -- Migrate existing Our Little Space DB → Stitch redesign
--- Safe-ish: keeps memories; remaps kamu/dia → nadhif/diah
--- Run in Supabase SQL Editor.
+-- IMPORTANT: drop person check constraints BEFORE remapping
+-- Run all of this in Supabase SQL Editor.
 -- ============================================================
 
--- Moods: ensure columns + remap person
+-- 1) Drop ALL check constraints that mention person/sender/receiver/created_by
+--    (old ones only allow kamu/dia)
+do $$
+declare
+  r record;
+begin
+  for r in
+    select c.conrelid::regclass as tbl, c.conname
+    from pg_constraint c
+    join pg_class cl on cl.oid = c.conrelid
+    join pg_namespace n on n.oid = cl.relnamespace
+    where c.contype = 'c'
+      and n.nspname = 'public'
+      and cl.relname in ('moods', 'notes', 'memories', 'todo_items', 'quick_messages')
+  loop
+    execute format('alter table %s drop constraint if exists %I', r.tbl, r.conname);
+  end loop;
+end $$;
+
+-- 2) Moods: columns + remap person
 alter table public.moods add column if not exists mood_date date;
 alter table public.moods add column if not exists updated_at timestamptz;
 
-update public.moods set mood_date = (timezone('Asia/Jakarta', created_at))::date where mood_date is null;
-update public.moods set updated_at = coalesce(updated_at, created_at) where updated_at is null;
+update public.moods
+set mood_date = (timezone('Asia/Jakarta', created_at))::date
+where mood_date is null;
+
+update public.moods
+set updated_at = coalesce(updated_at, created_at)
+where updated_at is null;
+
 update public.moods set person = 'nadhif' where person in ('kamu', 'nadhif');
 update public.moods set person = 'diah' where person in ('dia', 'diah');
 
-alter table public.moods alter column mood_date set default ((timezone('Asia/Jakarta', now()))::date);
-alter table public.moods alter column mood_date set not null;
-alter table public.moods alter column updated_at set default now();
-alter table public.moods alter column updated_at set not null;
+-- Keep only latest mood per person/day
+delete from public.moods a
+using public.moods b
+where a.person = b.person
+  and a.mood_date = b.mood_date
+  and a.created_at < b.created_at;
 
-delete from public.moods a using public.moods b
-where a.person = b.person and a.mood_date = b.mood_date and a.created_at < b.created_at;
+alter table public.moods
+  alter column mood_date set default ((timezone('Asia/Jakarta', now()))::date);
 
-do $$ begin
-  alter table public.moods drop constraint if exists moods_person_check;
-exception when undefined_object then null; end $$;
+alter table public.moods
+  alter column mood_date set not null;
 
-alter table public.moods drop constraint if exists moods_person_check;
--- recreate check by dropping old and adding new (Postgres named checks vary)
-alter table public.moods alter column person type text;
+alter table public.moods
+  alter column updated_at set default now();
 
-do $$ begin
-  if not exists (select 1 from pg_constraint where conname = 'moods_person_date_unique') then
-    alter table public.moods add constraint moods_person_date_unique unique (person, mood_date);
+alter table public.moods
+  alter column updated_at set not null;
+
+alter table public.moods
+  drop constraint if exists moods_person_check;
+
+alter table public.moods
+  add constraint moods_person_check check (person in ('nadhif', 'diah'));
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'moods_person_date_unique'
+  ) then
+    alter table public.moods
+      add constraint moods_person_date_unique unique (person, mood_date);
   end if;
 end $$;
 
--- Notes: add sender/receiver/is_read
+-- 3) Notes: sender / receiver / is_read
 alter table public.notes add column if not exists sender text;
 alter table public.notes add column if not exists receiver text;
 alter table public.notes add column if not exists is_read boolean default false;
 
--- Migrate from legacy person column if present
-do $$ begin
+do $$
+begin
   if exists (
-    select 1 from information_schema.columns
-    where table_schema = 'public' and table_name = 'notes' and column_name = 'person'
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'notes'
+      and column_name = 'person'
   ) then
-    update public.notes set sender = case
+    update public.notes
+    set sender = case
       when person in ('kamu', 'nadhif') then 'nadhif'
       else 'diah'
     end
     where sender is null;
 
-    update public.notes set receiver = case
+    update public.notes
+    set receiver = case
       when person in ('kamu', 'nadhif') then 'diah'
       else 'nadhif'
     end
@@ -60,6 +103,9 @@ do $$ begin
   end if;
 end $$;
 
+-- Fallback if somehow still null
+update public.notes set sender = 'nadhif' where sender is null;
+update public.notes set receiver = 'diah' where receiver is null;
 update public.notes set is_read = coalesce(is_read, false);
 
 alter table public.notes alter column sender set not null;
@@ -67,11 +113,22 @@ alter table public.notes alter column receiver set not null;
 alter table public.notes alter column is_read set not null;
 alter table public.notes alter column is_read set default false;
 
--- Memories person remap
+alter table public.notes drop constraint if exists notes_sender_check;
+alter table public.notes drop constraint if exists notes_receiver_check;
+alter table public.notes
+  add constraint notes_sender_check check (sender in ('nadhif', 'diah'));
+alter table public.notes
+  add constraint notes_receiver_check check (receiver in ('nadhif', 'diah'));
+
+-- 4) Memories remap
 update public.memories set person = 'nadhif' where person in ('kamu', 'nadhif');
 update public.memories set person = 'diah' where person in ('dia', 'diah');
 
--- New tables
+alter table public.memories drop constraint if exists memories_person_check;
+alter table public.memories
+  add constraint memories_person_check check (person in ('nadhif', 'diah'));
+
+-- 5) New tables
 create table if not exists public.note_reactions (
   id uuid primary key default gen_random_uuid(),
   note_id uuid not null references public.notes(id) on delete cascade,
@@ -90,16 +147,22 @@ create table if not exists public.bucket_items (
   created_at timestamptz not null default now()
 );
 
--- Seed bucket from todo_items if empty
 insert into public.bucket_items (title, status, created_by, completed_date, created_at)
 select
   title,
   case when is_completed then 'completed' else 'planned' end,
   case when person in ('kamu', 'nadhif') then 'nadhif' else 'diah' end,
-  case when is_completed then (timezone('Asia/Jakarta', coalesce(completed_at, now())))::date else null end,
+  case
+    when is_completed then (timezone('Asia/Jakarta', coalesce(completed_at, now())))::date
+    else null
+  end,
   created_at
 from public.todo_items
-where not exists (select 1 from public.bucket_items limit 1);
+where exists (
+  select 1 from information_schema.tables
+  where table_schema = 'public' and table_name = 'todo_items'
+)
+and not exists (select 1 from public.bucket_items limit 1);
 
 create table if not exists public.secret_letters (
   id uuid primary key default gen_random_uuid(),
@@ -116,13 +179,30 @@ create table if not exists public.hugs (
   created_at timestamptz not null default now()
 );
 
+-- 6) RLS + grants
+alter table public.moods enable row level security;
+alter table public.notes enable row level security;
 alter table public.note_reactions enable row level security;
 alter table public.bucket_items enable row level security;
 alter table public.secret_letters enable row level security;
 alter table public.hugs enable row level security;
+alter table public.memories enable row level security;
 
 drop policy if exists "Public can update moods" on public.moods;
-create policy "Public can update moods" on public.moods for update using (true) with check (true);
+drop policy if exists "moods_update" on public.moods;
+create policy "Public can update moods" on public.moods
+  for update using (true) with check (true);
+
+-- Allow inserts with new person values (recreate if old check on policy)
+drop policy if exists "Public can insert moods" on public.moods;
+drop policy if exists "moods_insert" on public.moods;
+create policy "Public can insert moods" on public.moods
+  for insert with check (person in ('nadhif', 'diah'));
+
+drop policy if exists "Public can read moods" on public.moods;
+drop policy if exists "moods_select" on public.moods;
+create policy "Public can read moods" on public.moods
+  for select using (true);
 
 drop policy if exists "reactions_select" on public.note_reactions;
 drop policy if exists "reactions_insert" on public.note_reactions;
@@ -152,6 +232,14 @@ create policy "hugs_insert" on public.hugs for insert with check (true);
 
 drop policy if exists "notes_update" on public.notes;
 create policy "notes_update" on public.notes for update using (true) with check (true);
+
+drop policy if exists "Public can insert notes" on public.notes;
+create policy "Public can insert notes" on public.notes
+  for insert with check (sender in ('nadhif', 'diah'));
+
+drop policy if exists "Public can insert memories" on public.memories;
+create policy "Public can insert memories" on public.memories
+  for insert with check (person in ('nadhif', 'diah'));
 
 grant select, insert, update on public.moods to anon, authenticated;
 grant select, insert, update, delete on public.notes to anon, authenticated;

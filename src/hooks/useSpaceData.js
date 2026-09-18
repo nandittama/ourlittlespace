@@ -2,6 +2,20 @@ import { useCallback, useEffect, useState } from 'react'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import { getJakartaDateString } from '../utils/date'
 
+async function safeQuery(label, runner) {
+  try {
+    const res = await runner()
+    if (res.error) {
+      console.error(`[${label}]`, res.error)
+      return { data: null, error: res.error }
+    }
+    return { data: res.data || [], error: null }
+  } catch (err) {
+    console.error(`[${label}]`, err)
+    return { data: null, error: err }
+  }
+}
+
 export function useSpaceData(enabled = true) {
   const [moods, setMoods] = useState([])
   const [notes, setNotes] = useState([])
@@ -27,47 +41,111 @@ export function useSpaceData(enabled = true) {
     setError(false)
     try {
       const today = getJakartaDateString()
+
       const [moodsRes, notesRes, reactionsRes, memoriesRes, bucketRes, lettersRes] =
         await Promise.all([
-          supabase
-            .from('moods')
-            .select('id,person,mood_key,mood_emoji,mood_label,message,mood_date,created_at,updated_at')
-            .eq('mood_date', today),
-          supabase
-            .from('notes')
-            .select('id,sender,receiver,content,is_read,created_at')
-            .order('created_at', { ascending: false })
-            .limit(30),
-          supabase
-            .from('note_reactions')
-            .select('id,note_id,person,reaction_type,created_at'),
-          supabase
-            .from('memories')
-            .select('id,person,title,description,image_url,memory_date,created_at')
-            .order('memory_date', { ascending: false })
-            .limit(24),
-          supabase
-            .from('bucket_items')
-            .select('id,title,status,created_by,completed_date,created_at')
-            .order('created_at', { ascending: false })
-            .limit(40),
-          supabase
-            .from('secret_letters')
-            .select('id,sender,receiver,content,open_on,created_at')
-            .order('created_at', { ascending: false })
-            .limit(20),
+          safeQuery('moods', () =>
+            supabase
+              .from('moods')
+              .select(
+                'id,person,mood_key,mood_emoji,mood_label,message,mood_date,created_at,updated_at'
+              )
+              .eq('mood_date', today)
+          ),
+          safeQuery('notes', () =>
+            supabase
+              .from('notes')
+              .select('id,sender,receiver,content,is_read,created_at')
+              .order('created_at', { ascending: false })
+              .limit(30)
+          ),
+          safeQuery('note_reactions', () =>
+            supabase
+              .from('note_reactions')
+              .select('id,note_id,person,reaction_type,created_at')
+          ),
+          safeQuery('memories', () =>
+            supabase
+              .from('memories')
+              .select('id,person,title,description,image_url,memory_date,created_at')
+              .order('memory_date', { ascending: false })
+              .limit(24)
+          ),
+          safeQuery('bucket_items', () =>
+            supabase
+              .from('bucket_items')
+              .select('id,title,status,created_by,completed_date,created_at')
+              .order('created_at', { ascending: false })
+              .limit(40)
+          ),
+          safeQuery('secret_letters', () =>
+            supabase
+              .from('secret_letters')
+              .select('id,sender,receiver,content,open_on,created_at')
+              .order('created_at', { ascending: false })
+              .limit(20)
+          ),
         ])
 
-      for (const res of [moodsRes, notesRes, reactionsRes, memoriesRes, bucketRes, lettersRes]) {
-        if (res.error) throw res.error
+      // Critical tables — if notes fail due to missing sender column, try legacy shape
+      let notesData = notesRes.data
+      if (notesRes.error) {
+        const legacy = await safeQuery('notes_legacy', () =>
+          supabase
+            .from('notes')
+            .select('id,person,content,created_at')
+            .order('created_at', { ascending: false })
+            .limit(30)
+        )
+        if (legacy.data) {
+          notesData = legacy.data.map((n) => ({
+            id: n.id,
+            sender: n.person === 'dia' || n.person === 'diah' ? 'diah' : 'nadhif',
+            receiver: n.person === 'dia' || n.person === 'diah' ? 'nadhif' : 'diah',
+            content: n.content,
+            is_read: false,
+            created_at: n.created_at,
+          }))
+        }
       }
 
-      setMoods(moodsRes.data || [])
-      setNotes(notesRes.data || [])
+      let moodsData = moodsRes.data
+      if (moodsRes.error) {
+        const legacy = await safeQuery('moods_legacy', () =>
+          supabase
+            .from('moods')
+            .select('id,person,mood_key,mood_emoji,mood_label,message,created_at')
+            .order('created_at', { ascending: false })
+            .limit(20)
+        )
+        if (legacy.data) {
+          moodsData = legacy.data
+            .map((m) => ({
+              ...m,
+              person:
+                m.person === 'dia' || m.person === 'diah'
+                  ? 'diah'
+                  : m.person === 'kamu' || m.person === 'nadhif'
+                    ? 'nadhif'
+                    : m.person,
+              mood_date: getJakartaDateString(new Date(m.created_at)),
+              updated_at: m.created_at,
+            }))
+            .filter((m) => m.mood_date === today)
+        }
+      }
+
+      const criticalFailed = Boolean(
+        (moodsRes.error && !moodsData) || (notesRes.error && !notesData) || memoriesRes.error
+      )
+
+      setMoods(moodsData || [])
+      setNotes(notesData || [])
       setReactions(reactionsRes.data || [])
       setMemories(memoriesRes.data || [])
       setBucketItems(bucketRes.data || [])
       setLetters(lettersRes.data || [])
+      setError(criticalFailed)
     } catch (err) {
       console.error(err)
       setError(true)

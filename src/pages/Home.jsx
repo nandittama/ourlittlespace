@@ -38,12 +38,16 @@ export default function Home() {
 
   if (hasPerson && error) {
     return (
-      <div className="connection-error">
-        <h1>Something went wrong.</h1>
-        <p className="muted">Please try again.</p>
-        <button type="button" className="btn btn--primary" onClick={refresh}>
-          Try again
-        </button>
+      <div className="page-shell">
+        <HeroSection myMood={null} partnerMood={null} />
+        <div className="connection-error" style={{ minHeight: '40vh' }}>
+          <h1>Something went wrong.</h1>
+          <p className="muted">Please try again.</p>
+          <button type="button" className="btn btn--primary" onClick={refresh}>
+            Try again
+          </button>
+        </div>
+        <FooterSection />
         <PersonPickerModal />
       </div>
     )
