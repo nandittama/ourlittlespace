@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Section from '../Section'
+import ConfirmDialog from '../ConfirmDialog'
 import { getPersonName } from '../../config'
 import { usePerson } from '../../context/PersonContext'
 import { useToast } from '../../context/ToastContext'
@@ -10,16 +11,20 @@ export default function TodoSection({ todos, onChanged }) {
   const { showToast } = useToast()
   const [title, setTitle] = useState('')
   const [busy, setBusy] = useState(false)
+  const [pendingDelete, setPendingDelete] = useState(null)
+
+  const doneCount = todos.filter((t) => t.is_completed).length
 
   const add = async (e) => {
     e.preventDefault()
-    if (!hasPerson) {
-      showToast('Pilih identitas dulu di atas.', 'error')
-      return
-    }
+    if (!hasPerson || busy) return
     const text = title.trim()
     if (!text) {
-      showToast('Tambah judul dulu.', 'error')
+      showToast('Add a title first.', 'error')
+      return
+    }
+    if (text.length > 100) {
+      showToast('Tasks can be up to 100 characters.', 'error')
       return
     }
 
@@ -39,13 +44,10 @@ export default function TodoSection({ todos, onChanged }) {
   }
 
   const toggle = async (item) => {
-    if (!hasPerson) {
-      showToast('Pilih identitas dulu di atas.', 'error')
-      return
-    }
+    if (!hasPerson || busy) return
+    const next = !item.is_completed
     setBusy(true)
     try {
-      const next = !item.is_completed
       const { error } = await supabase
         .from('todo_items')
         .update({
@@ -64,11 +66,13 @@ export default function TodoSection({ todos, onChanged }) {
     }
   }
 
-  const remove = async (id) => {
+  const confirmDelete = async () => {
+    if (!pendingDelete || busy) return
     setBusy(true)
     try {
-      const { error } = await supabase.from('todo_items').delete().eq('id', id)
+      const { error } = await supabase.from('todo_items').delete().eq('id', pendingDelete)
       if (error) throw error
+      setPendingDelete(null)
       showToast('Deleted.', 'success')
       onChanged?.()
     } catch (err) {
@@ -81,23 +85,33 @@ export default function TodoSection({ todos, onChanged }) {
 
   return (
     <Section id="todos" title="Things To Do" subtitle="Little plans for us.">
+      {todos.length > 0 ? (
+        <p className="progress-badge">
+          {doneCount}/{todos.length} selesai
+        </p>
+      ) : null}
+
       <form className="inline-form" onSubmit={add}>
+        <label className="sr-only" htmlFor="todo-title">
+          New plan
+        </label>
         <input
+          id="todo-title"
           type="text"
           value={title}
-          maxLength={200}
+          maxLength={100}
           placeholder="e.g. Call malam ini"
           onChange={(e) => setTitle(e.target.value)}
-          disabled={!hasPerson}
+          disabled={!hasPerson || busy}
         />
         <button type="submit" className="btn btn--primary" disabled={busy || !hasPerson}>
-          Add
+          {busy ? '...' : 'Add'}
         </button>
       </form>
 
       <ul className="todo-list">
         {todos.length === 0 ? (
-          <li className="empty">Belum ada rencana.</li>
+          <li className="empty">Nothing planned yet.</li>
         ) : (
           todos.map((item) => (
             <li key={item.id} className={`todo-row ${item.is_completed ? 'is-done' : ''}`}>
@@ -110,16 +124,35 @@ export default function TodoSection({ todos, onChanged }) {
                 />
                 <span>
                   {item.title}
-                  <small>by {getPersonName(item.person)}</small>
+                  <small>
+                    by {getPersonName(item.person)}
+                    <span className="todo-status">
+                      {item.is_completed ? 'Tercapai' : 'Rencana'}
+                    </span>
+                  </small>
                 </span>
               </label>
-              <button type="button" className="linkish" disabled={busy} onClick={() => remove(item.id)}>
+              <button
+                type="button"
+                className="linkish"
+                disabled={busy}
+                onClick={() => setPendingDelete(item.id)}
+              >
                 Delete
               </button>
             </li>
           ))
         )}
       </ul>
+
+      <ConfirmDialog
+        open={Boolean(pendingDelete)}
+        title="Delete this plan?"
+        message="This can't be undone."
+        busy={busy}
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={confirmDelete}
+      />
     </Section>
   )
 }

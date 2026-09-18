@@ -7,7 +7,7 @@ export function validateImageFile(file) {
     return 'Only JPG, PNG, or WEBP images are allowed.'
   }
   if (file.size > MAX_SIZE) {
-    return 'Image must be 5 MB or smaller.'
+    return 'Photo must be smaller than 5 MB.'
   }
   return null
 }

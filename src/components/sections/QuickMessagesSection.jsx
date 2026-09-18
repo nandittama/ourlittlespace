@@ -11,19 +11,16 @@ export default function QuickMessagesSection({ onChanged }) {
   const [sending, setSending] = useState(null)
 
   const send = async (option) => {
-    if (!hasPerson) {
-      showToast('Pilih identitas dulu di atas.', 'error')
-      return
-    }
+    if (!hasPerson || sending) return
     setSending(option.type)
     try {
       const { error } = await supabase.from('quick_messages').insert({
         person,
         type: option.type,
-        message: `${option.emoji} ${option.message}`,
+        message: option.message,
       })
       if (error) throw error
-      showToast('Sent ❤️', 'success')
+      showToast('Sent.', 'success')
       onChanged?.()
     } catch (err) {
       console.error(err)
@@ -41,7 +38,7 @@ export default function QuickMessagesSection({ onChanged }) {
             key={option.type}
             type="button"
             className="quick-btn"
-            disabled={sending === option.type}
+            disabled={Boolean(sending)}
             onClick={() => send(option)}
           >
             <span aria-hidden="true">{option.emoji}</span>

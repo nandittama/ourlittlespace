@@ -5,8 +5,8 @@ import { isSupabaseConfigured } from '../lib/supabase'
 import ConnectionError from '../components/ConnectionError'
 import PersonPickerModal from '../components/PersonPickerModal'
 import HeroSection from '../components/sections/HeroSection'
-import MoodSection from '../components/sections/MoodSection'
 import TodaySection from '../components/sections/TodaySection'
+import MoodSection from '../components/sections/MoodSection'
 import NotesSection from '../components/sections/NotesSection'
 import TodoSection from '../components/sections/TodoSection'
 import DateIdeaSection from '../components/sections/DateIdeaSection'
@@ -31,7 +31,8 @@ export default function Home() {
   if (hasPerson && error) {
     return (
       <div className="connection-error">
-        <h1>Something went wrong. Please try again.</h1>
+        <h1>Something went wrong.</h1>
+        <p className="muted">Please try again.</p>
         <button type="button" className="btn btn--primary" onClick={refresh}>
           Try again
         </button>
@@ -40,14 +41,14 @@ export default function Home() {
     )
   }
 
-  const myMood = latestMoodByPerson(person)
-  const partnerMood = latestMoodByPerson(getOtherPerson(person))
+  const myMood = hasPerson ? latestMoodByPerson(person) : null
+  const partnerMood = hasPerson ? latestMoodByPerson(getOtherPerson(person)) : null
   const latestNote = notes[0] || null
   const activeTodo = todos.find((t) => !t.is_completed) || null
 
   return (
     <div className="page-shell">
-      <HeroSection />
+      <HeroSection myMood={myMood} partnerMood={partnerMood} />
 
       {hasPerson ? (
         loading ? (
@@ -58,13 +59,13 @@ export default function Home() {
           </div>
         ) : (
           <>
-            <MoodSection myMood={myMood} partnerMood={partnerMood} onChanged={refresh} />
             <TodaySection
               myMood={myMood}
               partnerMood={partnerMood}
               latestNote={latestNote}
               activeTodo={activeTodo}
             />
+            <MoodSection myMood={myMood} partnerMood={partnerMood} onChanged={refresh} />
             <NotesSection notes={notes} onChanged={refresh} />
             <TodoSection todos={todos} onChanged={refresh} />
             <DateIdeaSection />

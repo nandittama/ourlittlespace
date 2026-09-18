@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
+import { getJakartaDateString } from '../utils/date'
 
 export function useSpaceData(enabled = true) {
   const [moods, setMoods] = useState([])
@@ -24,12 +25,13 @@ export function useSpaceData(enabled = true) {
     setLoading(true)
     setError(false)
     try {
+      const today = getJakartaDateString()
       const [moodsRes, notesRes, todosRes, memoriesRes, messagesRes] = await Promise.all([
         supabase
           .from('moods')
-          .select('id,person,mood_key,mood_emoji,mood_label,message,created_at')
-          .order('created_at', { ascending: false })
-          .limit(20),
+          .select('id,person,mood_key,mood_emoji,mood_label,message,mood_date,created_at,updated_at')
+          .eq('mood_date', today)
+          .order('updated_at', { ascending: false }),
         supabase
           .from('notes')
           .select('id,person,content,created_at')

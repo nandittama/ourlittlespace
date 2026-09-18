@@ -6,6 +6,9 @@ export const DEFAULT_PERSON_TWO_NAME = 'Diah'
 
 export const STORAGE_KEY_PERSON = 'current_person'
 
+/** Anniversary / relationship start — Asia/Jakarta calendar date */
+export const RELATIONSHIP_START = '2026-09-04'
+
 export function getPersonName(personKey) {
   if (personKey === PERSON_ONE) return DEFAULT_PERSON_ONE_NAME
   if (personKey === PERSON_TWO) return DEFAULT_PERSON_TWO_NAME

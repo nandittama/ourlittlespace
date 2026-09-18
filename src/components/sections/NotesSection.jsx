@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Section from '../Section'
-import { formatRelativeTime } from '../../utils/date'
+import ConfirmDialog from '../ConfirmDialog'
+import { formatNoteDay } from '../../utils/date'
 import { getPersonName } from '../../config'
 import { usePerson } from '../../context/PersonContext'
 import { useToast } from '../../context/ToastContext'
@@ -11,16 +12,18 @@ export default function NotesSection({ notes, onChanged }) {
   const { showToast } = useToast()
   const [content, setContent] = useState('')
   const [busy, setBusy] = useState(false)
+  const [pendingDelete, setPendingDelete] = useState(null)
 
   const create = async (e) => {
     e.preventDefault()
-    if (!hasPerson) {
-      showToast('Pilih identitas dulu di atas.', 'error')
-      return
-    }
+    if (!hasPerson || busy) return
     const text = content.trim()
     if (!text) {
-      showToast('Tulis catatan dulu.', 'error')
+      showToast('Write something first.', 'error')
+      return
+    }
+    if (text.length > 300) {
+      showToast('Notes can be up to 300 characters.', 'error')
       return
     }
 
@@ -29,7 +32,7 @@ export default function NotesSection({ notes, onChanged }) {
       const { error } = await supabase.from('notes').insert({ person, content: text })
       if (error) throw error
       setContent('')
-      showToast('Saved.', 'success')
+      showToast('Note saved.', 'success')
       onChanged?.()
     } catch (err) {
       console.error(err)
@@ -39,11 +42,13 @@ export default function NotesSection({ notes, onChanged }) {
     }
   }
 
-  const remove = async (id) => {
+  const confirmDelete = async () => {
+    if (!pendingDelete || busy) return
     setBusy(true)
     try {
-      const { error } = await supabase.from('notes').delete().eq('id', id)
+      const { error } = await supabase.from('notes').delete().eq('id', pendingDelete)
       if (error) throw error
+      setPendingDelete(null)
       showToast('Deleted.', 'success')
       onChanged?.()
     } catch (err) {
@@ -58,15 +63,16 @@ export default function NotesSection({ notes, onChanged }) {
     <Section id="notes" title="Little Notes" subtitle="Small words for each other.">
       <form className="card form-card" onSubmit={create}>
         <label className="field">
-          <span>Write a note</span>
+          <span>Write something</span>
           <textarea
             rows={3}
-            maxLength={500}
+            maxLength={300}
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="Jangan lupa makan."
-            disabled={!hasPerson}
+            placeholder="Don't forget to eat today."
+            disabled={!hasPerson || busy}
           />
+          <span className="field-hint">{content.trim().length}/300</span>
         </label>
         <button type="submit" className="btn btn--primary" disabled={busy || !hasPerson}>
           {busy ? 'Saving...' : 'Leave a note'}
@@ -75,17 +81,24 @@ export default function NotesSection({ notes, onChanged }) {
 
       <div className="notes-list">
         {notes.length === 0 ? (
-          <p className="empty">Belum ada little note.</p>
+          <p className="empty">No little notes yet.</p>
         ) : (
           notes.slice(0, 8).map((note) => (
             <article key={note.id} className="note-item">
-              <p>{note.content}</p>
+              <p className="note-item__text">“{note.content}”</p>
               <div className="note-item__meta">
                 <span>
-                  {getPersonName(note.person)} · {formatRelativeTime(note.created_at)}
+                  — {getPersonName(note.person)}
+                  <span className="dot">·</span>
+                  {formatNoteDay(note.created_at)}
                 </span>
                 {hasPerson && note.person === person ? (
-                  <button type="button" className="linkish" disabled={busy} onClick={() => remove(note.id)}>
+                  <button
+                    type="button"
+                    className="linkish"
+                    disabled={busy}
+                    onClick={() => setPendingDelete(note.id)}
+                  >
                     Delete
                   </button>
                 ) : null}
@@ -94,6 +107,15 @@ export default function NotesSection({ notes, onChanged }) {
           ))
         )}
       </div>
+
+      <ConfirmDialog
+        open={Boolean(pendingDelete)}
+        title="Delete this note?"
+        message="This can't be undone."
+        busy={busy}
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={confirmDelete}
+      />
     </Section>
   )
 }

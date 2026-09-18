@@ -1,4 +1,4 @@
-import { PERSONS } from '../config'
+import { PERSONS, getOtherPerson, getPersonName } from '../config'
 import { usePerson } from '../context/PersonContext'
 import { useToast } from '../context/ToastContext'
 
@@ -26,12 +26,13 @@ export default function PersonPickerModal() {
         if (!required) closePicker()
       }}
     >
-      <div
-        className="person-modal__card"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2 id="person-modal-title">Who&apos;s using this?</h2>
-        <p className="muted">Pilih Nadhif atau Diah untuk lanjut.</p>
+      <div className="person-modal__card" onClick={(e) => e.stopPropagation()}>
+        <h2 id="person-modal-title">Who&apos;s here?</h2>
+        <p className="muted">
+          {required
+            ? 'Pick Nadhif or Diah to continue.'
+            : `Switch from ${getPersonName(person)} to ${getPersonName(getOtherPerson(person))}?`}
+        </p>
         <div className="person-pick">
           {PERSONS.map((p) => (
             <button

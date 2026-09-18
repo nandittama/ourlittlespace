@@ -1,10 +1,13 @@
-import { APP_NAME } from '../../config'
+import { APP_NAME, APP_TAGLINE, getPersonName } from '../../config'
 
 export default function FooterSection() {
   return (
     <footer className="site-footer">
-      <p>Made for two.</p>
-      <p>{APP_NAME}</p>
+      <p className="site-footer__title">{APP_NAME}</p>
+      <p>{APP_TAGLINE}</p>
+      <p className="muted tiny">
+        {getPersonName('kamu')} &amp; {getPersonName('dia')} · Made with love
+      </p>
     </footer>
   )
 }
