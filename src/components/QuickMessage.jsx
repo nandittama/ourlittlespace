@@ -3,20 +3,13 @@ import { QUICK_MESSAGE_OPTIONS } from '../utils/quickMessages'
 import { supabase } from '../lib/supabase'
 import { usePerson } from '../context/PersonContext'
 import { useToast } from '../context/ToastContext'
-import PersonPicker from './PersonPicker'
 
 export default function QuickMessage({ onSent }) {
-  const { person, hasPerson } = usePerson()
+  const { person } = usePerson()
   const { showToast } = useToast()
   const [sending, setSending] = useState(null)
-  const [needPick, setNeedPick] = useState(false)
 
   const send = async (option) => {
-    if (!hasPerson) {
-      setNeedPick(true)
-      return
-    }
-
     setSending(option.type)
     try {
       const { error } = await supabase.from('quick_messages').insert({
@@ -39,7 +32,6 @@ export default function QuickMessage({ onSent }) {
     <section className="quick-message fade-in">
       <h2>Say something</h2>
       <p className="muted">A small note for the space.</p>
-      {needPick && !hasPerson ? <PersonPicker compact /> : null}
       <div className="quick-message__grid">
         {QUICK_MESSAGE_OPTIONS.map((option) => (
           <button

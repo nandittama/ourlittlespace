@@ -5,12 +5,11 @@ import { useToast } from '../context/ToastContext'
 import { MOODS, getMoodHint } from '../utils/moods'
 import { getOtherPerson, getPersonName } from '../config'
 import MoodCard from '../components/MoodCard'
-import PersonPicker from '../components/PersonPicker'
 import ConnectionError from '../components/ConnectionError'
 import Loading from '../components/Loading'
 
 export default function Mood() {
-  const { person, hasPerson } = usePerson()
+  const { person } = usePerson()
   const { showToast } = useToast()
   const [selected, setSelected] = useState(null)
   const [message, setMessage] = useState('')
@@ -21,8 +20,8 @@ export default function Mood() {
   const [failed, setFailed] = useState(false)
 
   const loadMoods = useCallback(async () => {
-    if (!isSupabaseConfigured) {
-      setFailed(true)
+    if (!isSupabaseConfigured || !person) {
+      setFailed(!isSupabaseConfigured)
       setLoading(false)
       return
     }
@@ -42,32 +41,22 @@ export default function Mood() {
         if (!latest[row.person]) latest[row.person] = row
       }
 
-      if (hasPerson) {
-        setMyMood(latest[person] || null)
-        setPartnerMood(latest[getOtherPerson(person)] || null)
-        if (latest[person]) setSelected(latest[person].mood_key)
-      } else {
-        setMyMood(latest.kamu || null)
-        setPartnerMood(latest.dia || null)
-      }
+      setMyMood(latest[person] || null)
+      setPartnerMood(latest[getOtherPerson(person)] || null)
+      if (latest[person]) setSelected(latest[person].mood_key)
     } catch (err) {
       console.error(err)
       setFailed(true)
     } finally {
       setLoading(false)
     }
-  }, [hasPerson, person])
+  }, [person])
 
   useEffect(() => {
     loadMoods()
   }, [loadMoods])
 
   const saveMood = async () => {
-    if (!hasPerson) {
-      showToast('Choose who you are first.', 'error')
-      return
-    }
-
     const mood = MOODS.find((m) => m.key === selected)
     if (!mood) {
       showToast('Please choose a mood.', 'error')
@@ -110,16 +99,10 @@ export default function Mood() {
         <p className="muted">Share how you feel today.</p>
       </header>
 
-      {!hasPerson ? <PersonPicker /> : null}
-
       <section className="mood-grid">
+        <MoodCard title="You" mood={myMood} emptyText="You haven't shared your mood today." />
         <MoodCard
-          title={hasPerson ? 'You' : getPersonName('kamu')}
-          mood={myMood}
-          emptyText="You haven't shared your mood today."
-        />
-        <MoodCard
-          title={hasPerson ? getPersonName(getOtherPerson(person)) : getPersonName('dia')}
+          title={getPersonName(getOtherPerson(person))}
           mood={partnerMood}
           emptyText="No mood shared yet."
           hint={partnerMood ? getMoodHint(partnerMood.mood_key) : null}
@@ -154,12 +137,7 @@ export default function Mood() {
           <span className="char-count">{message.length}/200</span>
         </label>
 
-        <button
-          type="button"
-          className="btn btn--primary"
-          disabled={saving || !selected || !hasPerson}
-          onClick={saveMood}
-        >
+        <button type="button" className="btn btn--primary" disabled={saving || !selected} onClick={saveMood}>
           {saving ? 'Saving...' : 'Save mood'}
         </button>
       </section>

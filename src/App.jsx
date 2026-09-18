@@ -6,13 +6,15 @@ import AppLayout from './components/AppLayout'
 import Loading from './components/Loading'
 import { isSupabaseConfigured } from './lib/supabase'
 import ConnectionError from './components/ConnectionError'
+import { ProtectedRoute, PublicOnlyRoute } from './components/ProtectedRoute'
 
+const Login = lazy(() => import('./pages/Login'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Mood = lazy(() => import('./pages/Mood'))
 const Notes = lazy(() => import('./pages/Notes'))
 const ThingsToDo = lazy(() => import('./pages/ThingsToDo'))
 const Memories = lazy(() => import('./pages/Memories'))
-const DateIdeas = lazy(() => import('./pages/DateIdeas'))
+const Profile = lazy(() => import('./pages/Profile'))
 
 function PageFallback() {
   return <Loading full label="Loading..." />
@@ -29,15 +31,22 @@ export default function App() {
         <BrowserRouter>
           <Suspense fallback={<PageFallback />}>
             <Routes>
-              <Route element={<AppLayout />}>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/dashboard" element={<Navigate to="/" replace />} />
-                <Route path="/mood" element={<Mood />} />
-                <Route path="/notes" element={<Notes />} />
-                <Route path="/things-to-do" element={<ThingsToDo />} />
-                <Route path="/memories" element={<Memories />} />
-                <Route path="/date-ideas" element={<DateIdeas />} />
+              <Route element={<PublicOnlyRoute />}>
+                <Route path="/login" element={<Login />} />
               </Route>
+
+              <Route element={<ProtectedRoute />}>
+                <Route element={<AppLayout />}>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/dashboard" element={<Navigate to="/" replace />} />
+                  <Route path="/mood" element={<Mood />} />
+                  <Route path="/notes" element={<Notes />} />
+                  <Route path="/things-to-do" element={<ThingsToDo />} />
+                  <Route path="/memories" element={<Memories />} />
+                  <Route path="/profile" element={<Profile />} />
+                </Route>
+              </Route>
+
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>

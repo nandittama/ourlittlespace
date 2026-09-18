@@ -6,7 +6,6 @@ import { validateImageFile, getImageExtension, compressImage } from '../utils/im
 import { formatShortDate } from '../utils/date'
 import { getPersonName } from '../config'
 import MemoryCard from '../components/MemoryCard'
-import PersonPicker from '../components/PersonPicker'
 import ConnectionError from '../components/ConnectionError'
 import Loading from '../components/Loading'
 
@@ -18,7 +17,7 @@ function publicImageUrl(path) {
 }
 
 export default function Memories() {
-  const { person, hasPerson } = usePerson()
+  const { person } = usePerson()
   const { showToast } = useToast()
   const [memories, setMemories] = useState([])
   const [loading, setLoading] = useState(true)
@@ -33,34 +32,37 @@ export default function Memories() {
   const [memoryDate, setMemoryDate] = useState(new Date().toISOString().slice(0, 10))
   const [file, setFile] = useState(null)
 
-  const loadMemories = useCallback(async (offset = 0, append = false) => {
-    if (!isSupabaseConfigured) {
-      setFailed(true)
-      setLoading(false)
-      return
-    }
+  const loadMemories = useCallback(
+    async (offset = 0, append = false) => {
+      if (!isSupabaseConfigured) {
+        setFailed(true)
+        setLoading(false)
+        return
+      }
 
-    if (!append) setLoading(true)
+      if (!append) setLoading(true)
 
-    try {
-      const { data, error } = await supabase
-        .from('memories')
-        .select('*')
-        .order('memory_date', { ascending: false })
-        .range(offset, offset + PAGE_SIZE - 1)
+      try {
+        const { data, error } = await supabase
+          .from('memories')
+          .select('*')
+          .order('memory_date', { ascending: false })
+          .range(offset, offset + PAGE_SIZE - 1)
 
-      if (error) throw error
-      const rows = data || []
-      setHasMore(rows.length === PAGE_SIZE)
-      setMemories((prev) => (append ? [...prev, ...rows] : rows))
-    } catch (err) {
-      console.error(err)
-      setFailed(true)
-      showToast('Something went wrong. Please try again.', 'error')
-    } finally {
-      setLoading(false)
-    }
-  }, [showToast])
+        if (error) throw error
+        const rows = data || []
+        setHasMore(rows.length === PAGE_SIZE)
+        setMemories((prev) => (append ? [...prev, ...rows] : rows))
+      } catch (err) {
+        console.error(err)
+        setFailed(true)
+        showToast('Something went wrong. Please try again.', 'error')
+      } finally {
+        setLoading(false)
+      }
+    },
+    [showToast]
+  )
 
   useEffect(() => {
     loadMemories(0, false)
@@ -68,10 +70,6 @@ export default function Memories() {
 
   const handleCreate = async (e) => {
     e.preventDefault()
-    if (!hasPerson) {
-      showToast('Choose who you are first.', 'error')
-      return
-    }
 
     const validationError = validateImageFile(file)
     if (validationError) {
@@ -153,24 +151,12 @@ export default function Memories() {
           <h1>Memories</h1>
           <p className="muted">Small moments worth keeping.</p>
         </div>
-        <button
-          type="button"
-          className="btn btn--primary"
-          onClick={() => {
-            if (!hasPerson) {
-              showToast('Choose who you are first.', 'error')
-              return
-            }
-            setShowForm((v) => !v)
-          }}
-        >
+        <button type="button" className="btn btn--primary" onClick={() => setShowForm((v) => !v)}>
           {showForm ? 'Cancel' : 'Add memory'}
         </button>
       </header>
 
-      {!hasPerson ? <PersonPicker /> : null}
-
-      {showForm && hasPerson && (
+      {showForm && (
         <form className="panel form slide-up" onSubmit={handleCreate}>
           <label>
             Photo

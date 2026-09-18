@@ -4,8 +4,8 @@ const links = [
   { to: '/', label: 'Home', icon: '⌂', end: true },
   { to: '/mood', label: 'Mood', icon: '☺' },
   { to: '/notes', label: 'Notes', icon: '✎' },
-  { to: '/things-to-do', label: 'To Do', icon: '✓' },
   { to: '/memories', label: 'Memories', icon: '◇' },
+  { to: '/profile', label: 'Profile', icon: '👤' },
 ]
 
 export default function BottomNav() {

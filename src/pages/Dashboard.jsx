@@ -4,16 +4,15 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import { usePerson } from '../context/PersonContext'
 import { useToast } from '../context/ToastContext'
 import { getGreeting, formatTodayLong, formatRelativeTime } from '../utils/date'
-import { getOtherPerson, getPersonName, APP_NAME } from '../config'
+import { getOtherPerson, getPersonName } from '../config'
 import { getMoodHint } from '../utils/moods'
 import MoodCard from '../components/MoodCard'
 import QuickMessage from '../components/QuickMessage'
-import PersonPicker from '../components/PersonPicker'
 import ConnectionError from '../components/ConnectionError'
 import Loading from '../components/Loading'
 
 export default function Dashboard() {
-  const { person, personName, hasPerson, switchPerson } = usePerson()
+  const { person, personName } = usePerson()
   const { showToast } = useToast()
   const [myMood, setMyMood] = useState(null)
   const [partnerMood, setPartnerMood] = useState(null)
@@ -22,8 +21,8 @@ export default function Dashboard() {
   const [failed, setFailed] = useState(false)
 
   const loadData = useCallback(async () => {
-    if (!isSupabaseConfigured) {
-      setFailed(true)
+    if (!isSupabaseConfigured || !person) {
+      setFailed(!isSupabaseConfigured)
       setLoading(false)
       return
     }
@@ -49,15 +48,9 @@ export default function Dashboard() {
         if (!latestByPerson[mood.person]) latestByPerson[mood.person] = mood
       }
 
-      if (hasPerson) {
-        setMyMood(latestByPerson[person] || null)
-        setPartnerMood(latestByPerson[getOtherPerson(person)] || null)
-        setMessages((messagesRes.data || []).filter((m) => m.person !== person).slice(0, 5))
-      } else {
-        setMyMood(null)
-        setPartnerMood(null)
-        setMessages((messagesRes.data || []).slice(0, 5))
-      }
+      setMyMood(latestByPerson[person] || null)
+      setPartnerMood(latestByPerson[getOtherPerson(person)] || null)
+      setMessages((messagesRes.data || []).filter((m) => m.person !== person).slice(0, 5))
     } catch (err) {
       console.error(err)
       setFailed(true)
@@ -65,7 +58,7 @@ export default function Dashboard() {
     } finally {
       setLoading(false)
     }
-  }, [hasPerson, person, showToast])
+  }, [person, showToast])
 
   useEffect(() => {
     loadData()
@@ -78,27 +71,11 @@ export default function Dashboard() {
     <div className="page dashboard fade-in">
       <header className="page-header">
         <p className="date-line">{formatTodayLong()}</p>
-        {hasPerson ? (
-          <>
-            <h1>
-              {getGreeting(personName)} <span aria-hidden="true">❤️</span>
-            </h1>
-            <p className="lede">How are you today?</p>
-            <button type="button" className="btn btn--ghost btn--sm switch-btn" onClick={switchPerson}>
-              Switch person
-            </button>
-          </>
-        ) : (
-          <>
-            <h1>
-              Welcome to {APP_NAME} <span aria-hidden="true">❤️</span>
-            </h1>
-            <p className="lede">Choose who you are</p>
-          </>
-        )}
+        <h1>
+          {getGreeting(personName)} <span aria-hidden="true">❤️</span>
+        </h1>
+        <p className="lede">How are you today?</p>
       </header>
-
-      {!hasPerson ? <PersonPicker /> : null}
 
       {messages.length > 0 && (
         <section className="notifications">
@@ -120,19 +97,19 @@ export default function Dashboard() {
 
       <section className="mood-grid">
         <MoodCard
-          title={hasPerson ? 'You' : getPersonName('kamu')}
-          mood={hasPerson ? myMood : null}
-          emptyText={hasPerson ? "You haven't shared your mood today." : 'No mood yet.'}
+          title="You"
+          mood={myMood}
+          emptyText="You haven't shared your mood today."
         />
         <MoodCard
-          title={hasPerson ? getPersonName(getOtherPerson(person)) : getPersonName('dia')}
-          mood={hasPerson ? partnerMood : null}
+          title={getPersonName(getOtherPerson(person))}
+          mood={partnerMood}
           emptyText="No mood shared yet."
-          hint={hasPerson && partnerMood ? getMoodHint(partnerMood.mood_key) : null}
+          hint={partnerMood ? getMoodHint(partnerMood.mood_key) : null}
         />
       </section>
 
-      {hasPerson && myMood ? (
+      {myMood ? (
         <p className="current-mood-line">
           <span aria-hidden="true">{myMood.mood_emoji}</span> {myMood.mood_label}
         </p>
@@ -154,9 +131,6 @@ export default function Dashboard() {
             Memories
           </Link>
         </div>
-        <Link to="/date-ideas" className="btn btn--primary btn--block surprise-btn">
-          🎲 Surprise Me
-        </Link>
       </section>
 
       <QuickMessage onSent={loadData} />

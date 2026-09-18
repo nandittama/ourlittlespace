@@ -4,12 +4,11 @@ import { usePerson } from '../context/PersonContext'
 import { useToast } from '../context/ToastContext'
 import { getOtherPerson } from '../config'
 import NoteCard from '../components/NoteCard'
-import PersonPicker from '../components/PersonPicker'
 import ConnectionError from '../components/ConnectionError'
 import Loading from '../components/Loading'
 
 export default function Notes() {
-  const { person, hasPerson } = usePerson()
+  const { person } = usePerson()
   const { showToast } = useToast()
   const [notes, setNotes] = useState([])
   const [content, setContent] = useState('')
@@ -48,11 +47,6 @@ export default function Notes() {
 
   const createNote = async (e) => {
     e.preventDefault()
-    if (!hasPerson) {
-      showToast('Choose who you are first.', 'error')
-      return
-    }
-
     const text = content.trim()
     if (!text) {
       showToast('Write something first.', 'error')
@@ -92,10 +86,8 @@ export default function Notes() {
     }
   }
 
-  const fromYou = hasPerson ? notes.filter((n) => n.person === person) : notes.filter((n) => n.person === 'kamu')
-  const fromPartner = hasPerson
-    ? notes.filter((n) => n.person === getOtherPerson(person))
-    : notes.filter((n) => n.person === 'dia')
+  const fromYou = notes.filter((n) => n.person === person)
+  const fromPartner = notes.filter((n) => n.person === getOtherPerson(person))
 
   if (!isSupabaseConfigured || failed) return <ConnectionError />
   if (loading) return <Loading />
@@ -107,8 +99,6 @@ export default function Notes() {
         <p className="muted">Small notes for each other.</p>
       </header>
 
-      {!hasPerson ? <PersonPicker /> : null}
-
       <form className="panel form" onSubmit={createNote}>
         <label>
           Write a note
@@ -118,10 +108,9 @@ export default function Notes() {
             rows={3}
             maxLength={500}
             placeholder="Jangan lupa makan."
-            disabled={!hasPerson}
           />
         </label>
-        <button type="submit" className="btn btn--primary" disabled={busy || !hasPerson}>
+        <button type="submit" className="btn btn--primary" disabled={busy}>
           {busy ? 'Saving...' : 'Save note'}
         </button>
       </form>

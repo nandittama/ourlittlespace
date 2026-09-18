@@ -3,12 +3,11 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import { usePerson } from '../context/PersonContext'
 import { useToast } from '../context/ToastContext'
 import TodoItem from '../components/TodoItem'
-import PersonPicker from '../components/PersonPicker'
 import ConnectionError from '../components/ConnectionError'
 import Loading from '../components/Loading'
 
 export default function ThingsToDo() {
-  const { person, hasPerson } = usePerson()
+  const { person } = usePerson()
   const { showToast } = useToast()
   const [items, setItems] = useState([])
   const [title, setTitle] = useState('')
@@ -47,11 +46,6 @@ export default function ThingsToDo() {
 
   const addItem = async (e) => {
     e.preventDefault()
-    if (!hasPerson) {
-      showToast('Choose who you are first.', 'error')
-      return
-    }
-
     const text = title.trim()
     if (!text) {
       showToast('Add a title first.', 'error')
@@ -77,11 +71,6 @@ export default function ThingsToDo() {
   }
 
   const toggleItem = async (item) => {
-    if (!hasPerson) {
-      showToast('Choose who you are first.', 'error')
-      return
-    }
-
     setBusy(true)
     try {
       const next = !item.is_completed
@@ -146,8 +135,6 @@ export default function ThingsToDo() {
         <p className="muted">Activities you want to do together.</p>
       </header>
 
-      {!hasPerson ? <PersonPicker /> : null}
-
       <form className="panel form row-form" onSubmit={addItem}>
         <input
           type="text"
@@ -155,9 +142,8 @@ export default function ThingsToDo() {
           onChange={(e) => setTitle(e.target.value.slice(0, 200))}
           placeholder="e.g. Ngopi bersama"
           maxLength={200}
-          disabled={!hasPerson}
         />
-        <button type="submit" className="btn btn--primary" disabled={busy || !hasPerson}>
+        <button type="submit" className="btn btn--primary" disabled={busy}>
           {busy ? 'Saving...' : 'Add'}
         </button>
       </form>
