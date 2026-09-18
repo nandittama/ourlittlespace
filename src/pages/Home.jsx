@@ -1,25 +1,33 @@
+import { useRef } from 'react'
 import { usePerson } from '../context/PersonContext'
-import { getOtherPerson } from '../config'
+import { PERSON_ONE, PERSON_TWO } from '../config'
 import { useSpaceData } from '../hooks/useSpaceData'
 import { isSupabaseConfigured } from '../lib/supabase'
+import { daysUntil } from '../utils/date'
+import { COUNTDOWNS } from '../config'
 import ConnectionError from '../components/ConnectionError'
 import PersonPickerModal from '../components/PersonPickerModal'
 import HeroSection from '../components/sections/HeroSection'
 import TodaySection from '../components/sections/TodaySection'
+import QuickActionsSection from '../components/sections/QuickActionsSection'
 import MoodSection from '../components/sections/MoodSection'
 import NotesSection from '../components/sections/NotesSection'
-import TodoSection from '../components/sections/TodoSection'
-import DateIdeaSection from '../components/sections/DateIdeaSection'
 import MemoriesSection from '../components/sections/MemoriesSection'
-import QuickMessagesSection from '../components/sections/QuickMessagesSection'
+import MusicSection from '../components/sections/MusicSection'
+import CountdownSection from '../components/sections/CountdownSection'
+import BucketListSection from '../components/sections/BucketListSection'
+import DailyQuoteSection from '../components/sections/DailyQuoteSection'
 import FooterSection from '../components/sections/FooterSection'
 
 export default function Home() {
   const { person, hasPerson } = usePerson()
+  const memoriesRef = useRef(null)
   const {
     notes,
-    todos,
+    reactions,
     memories,
+    bucketItems,
+    letters,
     loading,
     error,
     refresh,
@@ -41,10 +49,16 @@ export default function Home() {
     )
   }
 
+  const moodOne = latestMoodByPerson(PERSON_ONE)
+  const moodTwo = latestMoodByPerson(PERSON_TWO)
   const myMood = hasPerson ? latestMoodByPerson(person) : null
-  const partnerMood = hasPerson ? latestMoodByPerson(getOtherPerson(person)) : null
+  const partnerMood = hasPerson
+    ? latestMoodByPerson(person === PERSON_ONE ? PERSON_TWO : PERSON_ONE)
+    : null
   const latestNote = notes[0] || null
-  const activeTodo = todos.find((t) => !t.is_completed) || null
+  const nextCountdown = COUNTDOWNS.map((c) => ({ ...c, daysLeft: daysUntil(c.targetDate) }))
+    .filter((c) => c.daysLeft >= 0)
+    .sort((a, b) => a.daysLeft - b.daysLeft)[0]
 
   return (
     <div className="page-shell">
@@ -60,17 +74,24 @@ export default function Home() {
         ) : (
           <>
             <TodaySection
-              myMood={myMood}
-              partnerMood={partnerMood}
+              moodOne={moodOne}
+              moodTwo={moodTwo}
               latestNote={latestNote}
-              activeTodo={activeTodo}
+              nextCountdown={nextCountdown}
             />
-            <MoodSection myMood={myMood} partnerMood={partnerMood} onChanged={refresh} />
-            <NotesSection notes={notes} onChanged={refresh} />
-            <TodoSection todos={todos} onChanged={refresh} />
-            <DateIdeaSection />
-            <MemoriesSection memories={memories} onChanged={refresh} />
-            <QuickMessagesSection onChanged={refresh} />
+            <QuickActionsSection onOpenMemory={() => memoriesRef.current?.openUpload?.()} />
+            <MoodSection moodOne={moodOne} moodTwo={moodTwo} onChanged={refresh} />
+            <NotesSection
+              notes={notes}
+              reactions={reactions}
+              letters={letters}
+              onChanged={refresh}
+            />
+            <MemoriesSection ref={memoriesRef} memories={memories} onChanged={refresh} />
+            <MusicSection />
+            <CountdownSection />
+            <BucketListSection items={bucketItems} onChanged={refresh} />
+            <DailyQuoteSection />
           </>
         )
       ) : null}

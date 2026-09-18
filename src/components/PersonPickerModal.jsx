@@ -1,55 +1,35 @@
-import { PERSONS, getOtherPerson, getPersonName } from '../config'
+import { PERSONS } from '../config'
 import { usePerson } from '../context/PersonContext'
 import { useToast } from '../context/ToastContext'
 
+/** Only used when no persona is chosen yet — compact gate, not a full settings page. */
 export default function PersonPickerModal() {
   const { person, setPerson, pickerOpen, closePicker, hasPerson } = usePerson()
   const { showToast } = useToast()
 
-  if (!pickerOpen) return null
-
-  const required = !hasPerson
-
-  const choose = (key, name) => {
-    setPerson(key)
-    closePicker()
-    showToast(`Hi, ${name}.`, 'success')
-  }
+  if (!pickerOpen || hasPerson) return null
 
   return (
-    <div
-      className="person-modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="person-modal-title"
-      onClick={() => {
-        if (!required) closePicker()
-      }}
-    >
-      <div className="person-modal__card" onClick={(e) => e.stopPropagation()}>
+    <div className="person-modal" role="dialog" aria-modal="true" aria-labelledby="person-modal-title">
+      <div className="person-modal__card">
         <h2 id="person-modal-title">Who&apos;s here?</h2>
-        <p className="muted">
-          {required
-            ? 'Pick Nadhif or Diah to continue.'
-            : `Switch from ${getPersonName(person)} to ${getPersonName(getOtherPerson(person))}?`}
-        </p>
+        <p className="muted">Nadhif or Diah — just for this device.</p>
         <div className="person-pick">
           {PERSONS.map((p) => (
             <button
               key={p.key}
               type="button"
               className={`person-pick__btn ${person === p.key ? 'is-active' : ''}`}
-              onClick={() => choose(p.key, p.name)}
+              onClick={() => {
+                setPerson(p.key)
+                closePicker()
+                showToast(`Hi, ${p.name}.`, 'success')
+              }}
             >
               {p.name}
             </button>
           ))}
         </div>
-        {!required ? (
-          <button type="button" className="btn btn--ghost person-modal__cancel" onClick={closePicker}>
-            Cancel
-          </button>
-        ) : null}
       </div>
     </div>
   )

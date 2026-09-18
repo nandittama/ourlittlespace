@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react'
 import Section from '../Section'
 import ConfirmDialog from '../ConfirmDialog'
 import { getPersonName } from '../../config'
@@ -6,36 +6,47 @@ import { usePerson } from '../../context/PersonContext'
 import { useToast } from '../../context/ToastContext'
 import { supabase } from '../../lib/supabase'
 import { validateImageFile, getImageExtension, compressImage } from '../../utils/image'
-import { formatShortDate, getJakartaDateString } from '../../utils/date'
+import { formatMonthYear, formatShortDate, getJakartaDateString } from '../../utils/date'
 
 function publicUrl(path) {
   const { data } = supabase.storage.from('memories').getPublicUrl(path)
   return data?.publicUrl || null
 }
 
-export default function MemoriesSection({ memories, onChanged }) {
+const MemoriesSection = forwardRef(function MemoriesSection({ memories, onChanged }, ref) {
   const { person, hasPerson } = usePerson()
   const { showToast } = useToast()
   const [open, setOpen] = useState(false)
+  const [expanded, setExpanded] = useState(false)
   const [busy, setBusy] = useState(false)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [memoryDate, setMemoryDate] = useState(getJakartaDateString())
   const [file, setFile] = useState(null)
   const [pendingDelete, setPendingDelete] = useState(null)
+  const [lightbox, setLightbox] = useState(null)
+
+  useImperativeHandle(ref, () => ({
+    openUpload: () => setOpen(true),
+  }))
 
   const previewUrl = useMemo(() => (file ? URL.createObjectURL(file) : null), [file])
+  useEffect(() => () => previewUrl && URL.revokeObjectURL(previewUrl), [previewUrl])
 
   useEffect(() => {
-    return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl)
+    if (!lightbox) return undefined
+    const onKey = (e) => {
+      if (e.key === 'Escape') setLightbox(null)
     }
-  }, [previewUrl])
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [lightbox])
+
+  const visible = expanded ? memories : memories.slice(0, 6)
 
   const create = async (e) => {
     e.preventDefault()
     if (!hasPerson || busy) return
-
     const validation = validateImageFile(file)
     if (validation) {
       showToast(validation, 'error')
@@ -46,28 +57,16 @@ export default function MemoriesSection({ memories, onChanged }) {
       showToast('Add a title first.', 'error')
       return
     }
-    if (cleanTitle.length > 100) {
-      showToast('Title can be up to 100 characters.', 'error')
-      return
-    }
-    if (description.trim().length > 500) {
-      showToast('Description can be up to 500 characters.', 'error')
-      return
-    }
-
     setBusy(true)
     let path = null
     try {
       const compressed = await compressImage(file)
-      const ext = getImageExtension(file)
-      path = `${person}/${crypto.randomUUID()}.${ext}`
-
+      path = `${person}/${crypto.randomUUID()}.${getImageExtension(file)}`
       const { error: uploadError } = await supabase.storage.from('memories').upload(path, compressed, {
         contentType: file.type === 'image/png' ? 'image/png' : 'image/jpeg',
         upsert: false,
       })
       if (uploadError) throw uploadError
-
       const { error: insertError } = await supabase.from('memories').insert({
         person,
         title: cleanTitle,
@@ -79,11 +78,9 @@ export default function MemoriesSection({ memories, onChanged }) {
         await supabase.storage.from('memories').remove([path])
         throw insertError
       }
-
       setTitle('')
       setDescription('')
       setFile(null)
-      setMemoryDate(getJakartaDateString())
       setOpen(false)
       showToast('Saved.', 'success')
       onChanged?.()
@@ -105,6 +102,7 @@ export default function MemoriesSection({ memories, onChanged }) {
         await supabase.storage.from('memories').remove([pendingDelete.image_url])
       }
       setPendingDelete(null)
+      setLightbox(null)
       showToast('Deleted.', 'success')
       onChanged?.()
     } catch (err) {
@@ -116,16 +114,16 @@ export default function MemoriesSection({ memories, onChanged }) {
   }
 
   return (
-    <Section id="memories" title="Little Memories" subtitle="Things worth keeping.">
-      <div className="section-actions">
-        <button
-          type="button"
-          className="btn btn--secondary"
-          onClick={() => setOpen((v) => !v)}
-          disabled={busy}
-        >
+    <Section id="memories" title="Little Memories" subtitle="Some moments are worth keeping.">
+      <div className="section-actions row-between">
+        <button type="button" className="btn btn--secondary" onClick={() => setOpen((v) => !v)}>
           {open ? 'Cancel' : 'Add memory'}
         </button>
+        {memories.length > 6 ? (
+          <button type="button" className="linkish" onClick={() => setExpanded((v) => !v)}>
+            {expanded ? 'Show less' : `View all memories (${memories.length})`}
+          </button>
+        ) : null}
       </div>
 
       {open ? (
@@ -156,35 +154,21 @@ export default function MemoriesSection({ memories, onChanged }) {
           ) : null}
           <label className="field">
             <span>Title</span>
-            <input
-              value={title}
-              maxLength={100}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-              disabled={busy}
-            />
+            <input value={title} maxLength={100} onChange={(e) => setTitle(e.target.value)} required />
           </label>
           <label className="field">
             <span>Date</span>
-            <input
-              type="date"
-              value={memoryDate}
-              onChange={(e) => setMemoryDate(e.target.value)}
-              required
-              disabled={busy}
-            />
+            <input type="date" value={memoryDate} onChange={(e) => setMemoryDate(e.target.value)} required />
           </label>
           <label className="field">
-            <span>Short story</span>
+            <span>Caption</span>
             <textarea
               rows={3}
               maxLength={500}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Optional"
-              disabled={busy}
+              placeholder="One of those evenings we didn't want to end."
             />
-            <span className="field-hint">{description.trim().length}/500</span>
           </label>
           <button type="submit" className="btn btn--primary" disabled={busy || !hasPerson}>
             {busy ? 'Saving...' : 'Save memory'}
@@ -193,33 +177,61 @@ export default function MemoriesSection({ memories, onChanged }) {
       ) : null}
 
       {memories.length === 0 ? (
-        <p className="empty">Start with one little memory.</p>
+        <p className="empty">Maybe this is the perfect place for your first photo.</p>
       ) : (
         <div className="memory-grid">
-          {memories.map((memory) => (
-            <article key={memory.id} className="memory-item polaroid">
+          {visible.map((memory) => (
+            <button
+              key={memory.id}
+              type="button"
+              className="memory-item polaroid"
+              onClick={() => setLightbox(memory)}
+            >
               <img src={publicUrl(memory.image_url)} alt={memory.title} loading="lazy" />
               <div className="memory-item__body">
+                <p className="polaroid-date">{formatMonthYear(memory.memory_date)}</p>
                 <h3>{memory.title}</h3>
-                <p className="muted tiny">
-                  {formatShortDate(memory.memory_date)} · {getPersonName(memory.person)}
-                </p>
                 {memory.description ? <p className="tiny">{memory.description}</p> : null}
-                {hasPerson && memory.person === person ? (
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {lightbox ? (
+        <div
+          className="lightbox"
+          role="dialog"
+          aria-modal="true"
+          aria-label={lightbox.title}
+          onClick={() => setLightbox(null)}
+        >
+          <div className="lightbox__card" onClick={(e) => e.stopPropagation()}>
+            <img src={publicUrl(lightbox.image_url)} alt={lightbox.title} />
+            <div className="lightbox__body">
+              <h3>{lightbox.title}</h3>
+              <p className="muted tiny">
+                {formatShortDate(lightbox.memory_date)} · {getPersonName(lightbox.person)}
+              </p>
+              {lightbox.description ? <p>{lightbox.description}</p> : null}
+              <div className="lightbox__actions">
+                <button type="button" className="btn btn--secondary" onClick={() => setLightbox(null)}>
+                  Close
+                </button>
+                {hasPerson && lightbox.person === person ? (
                   <button
                     type="button"
-                    className="linkish"
-                    disabled={busy}
-                    onClick={() => setPendingDelete(memory)}
+                    className="btn btn--danger"
+                    onClick={() => setPendingDelete(lightbox)}
                   >
                     Delete
                   </button>
                 ) : null}
               </div>
-            </article>
-          ))}
+            </div>
+          </div>
         </div>
-      )}
+      ) : null}
 
       <ConfirmDialog
         open={Boolean(pendingDelete)}
@@ -231,4 +243,6 @@ export default function MemoriesSection({ memories, onChanged }) {
       />
     </Section>
   )
-}
+})
+
+export default MemoriesSection

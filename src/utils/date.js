@@ -1,9 +1,9 @@
 import { format } from 'date-fns'
 import { enUS } from 'date-fns/locale'
+import { TIMEZONE } from '../config'
 
-export const JAKARTA_TZ = 'Asia/Jakarta'
+export const JAKARTA_TZ = TIMEZONE || 'Asia/Jakarta'
 
-/** Calendar "now" parts in Asia/Jakarta (for business dates). */
 export function getJakartaParts(date = new Date()) {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: JAKARTA_TZ,
@@ -25,24 +25,54 @@ export function getJakartaParts(date = new Date()) {
   }
 }
 
-/** YYYY-MM-DD in Asia/Jakarta */
 export function getJakartaDateString(date = new Date()) {
   const { year, month, day } = getJakartaParts(date)
   return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 }
 
-export function isJakartaToday(dateValue) {
-  if (!dateValue) return false
-  if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
-    return dateValue === getJakartaDateString()
+export function parseDateOnly(iso) {
+  if (!iso) return null
+  const [y, m, d] = iso.split('-').map(Number)
+  return { y, m, d }
+}
+
+export function daysBetween(startIso, endIso) {
+  const a = parseDateOnly(startIso)
+  const b = parseDateOnly(endIso)
+  if (!a || !b) return 0
+  const start = Date.UTC(a.y, a.m - 1, a.d)
+  const end = Date.UTC(b.y, b.m - 1, b.d)
+  return Math.floor((end - start) / 86400000)
+}
+
+export function getDaysTogether(anniversaryIso) {
+  const today = getJakartaDateString()
+  const diff = daysBetween(anniversaryIso, today)
+  return Math.max(0, diff + 1)
+}
+
+export function daysUntil(targetIso) {
+  const today = getJakartaDateString()
+  const diff = daysBetween(today, targetIso)
+  return diff
+}
+
+/** Next anniversary on/after today (recurring May 30 style) */
+export function nextAnniversaryDate(anniversaryIso) {
+  const today = getJakartaDateString()
+  const { y: ay, m, d } = parseDateOnly(anniversaryIso) || {}
+  if (!m || !d) return null
+  const { year } = getJakartaParts()
+  let candidate = `${year}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+  if (daysBetween(today, candidate) < 0) {
+    candidate = `${year + 1}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
   }
-  return getJakartaDateString(new Date(dateValue)) === getJakartaDateString()
+  return candidate
 }
 
 export function getGreeting(displayName) {
   const { hour } = getJakartaParts()
   const name = displayName || 'there'
-
   if (hour >= 5 && hour < 12) return `Good morning, ${name}.`
   if (hour >= 12 && hour < 17) return `Good afternoon, ${name}.`
   if (hour >= 17 && hour < 21) return `Good evening, ${name}.`
@@ -59,18 +89,35 @@ export function formatShortDate(dateValue) {
   if (!dateValue) return ''
   if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
     const [y, m, d] = dateValue.split('-').map(Number)
-    return format(new Date(y, m - 1, d), 'd MMM yyyy', { locale: enUS })
+    return format(new Date(y, m - 1, d), 'd MMMM yyyy', { locale: enUS })
   }
-  return format(new Date(dateValue), 'd MMM yyyy', { locale: enUS })
+  return format(new Date(dateValue), 'd MMMM yyyy', { locale: enUS })
+}
+
+export function formatMonthYear(dateValue) {
+  if (!dateValue) return ''
+  if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+    const [y, m, d] = dateValue.split('-').map(Number)
+    return format(new Date(y, m - 1, d), 'MMMM yyyy', { locale: enUS })
+  }
+  return format(new Date(dateValue), 'MMMM yyyy', { locale: enUS })
+}
+
+export function formatTimeShort(dateValue) {
+  if (!dateValue) return ''
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: JAKARTA_TZ,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(new Date(dateValue))
 }
 
 export function formatRelativeTime(dateValue) {
   if (!dateValue) return ''
   const date = new Date(dateValue)
   const now = new Date()
-  const diffMs = now - date
-  const diffMin = Math.floor(diffMs / 60000)
-
+  const diffMin = Math.floor((now - date) / 60000)
   if (diffMin < 1) return 'just now'
   if (diffMin < 60) return `${diffMin}m ago`
   const diffHr = Math.floor(diffMin / 60)
@@ -80,25 +127,28 @@ export function formatRelativeTime(dateValue) {
   return formatShortDate(dateValue)
 }
 
-export function formatNoteDay(dateValue) {
-  if (isJakartaToday(dateValue)) return 'Today'
-  return formatShortDate(dateValue)
-}
-
-export function getDaysTogether(startDateStr) {
-  if (!startDateStr) return 0
+export function formatNoteWhen(dateValue) {
   const today = getJakartaDateString()
-  const [ty, tm, td] = today.split('-').map(Number)
-  const [sy, sm, sd] = startDateStr.split('-').map(Number)
-  const start = Date.UTC(sy, sm - 1, sd)
-  const end = Date.UTC(ty, tm - 1, td)
-  const diff = Math.floor((end - start) / 86400000)
-  return Math.max(0, diff + 1)
+  const noteDay = getJakartaDateString(new Date(dateValue))
+  const time = formatTimeShort(dateValue)
+  if (noteDay === today) return `Today · ${time}`
+  return `${formatShortDate(noteDay)} · ${time}`
 }
 
-export function formatAnniversaryLabel(startDateStr) {
-  if (!startDateStr) return ''
-  const [y, m, d] = startDateStr.split('-').map(Number)
-  const label = format(new Date(y, m - 1, d), 'd MMMM yyyy', { locale: enUS })
-  return `Anniversary: ${label}`
+export function formatAnniversaryLabel(iso) {
+  return formatShortDate(iso)
+}
+
+export function pickDailyQuote(quotes) {
+  if (!quotes?.length) return ''
+  const day = getJakartaDateString().replace(/-/g, '')
+  const idx = Number(day) % quotes.length
+  return quotes[idx]
+}
+
+export function formatAudioTime(seconds) {
+  if (!Number.isFinite(seconds) || seconds < 0) return '0:00'
+  const m = Math.floor(seconds / 60)
+  const s = Math.floor(seconds % 60)
+  return `${m}:${String(s).padStart(2, '0')}`
 }

@@ -1,64 +1,47 @@
 import Section from '../Section'
-import { getOtherPerson, getPersonName } from '../../config'
-import { usePerson } from '../../context/PersonContext'
+import { PERSON_ONE, PERSON_TWO, getPersonName } from '../../config'
+import { daysUntil, formatShortDate } from '../../utils/date'
+import { COUNTDOWNS } from '../../config'
 
-export default function TodaySection({ myMood, partnerMood, latestNote, activeTodo }) {
-  const { person, hasPerson } = usePerson()
-  const partner = hasPerson ? getOtherPerson(person) : 'dia'
-  const partnerName = getPersonName(partner)
-  const empty = !myMood && !partnerMood && !latestNote && !activeTodo
+export default function TodaySection({ moodOne, moodTwo, latestNote, nextCountdown }) {
+  const countdown =
+    nextCountdown ||
+    COUNTDOWNS.map((c) => ({ ...c, daysLeft: daysUntil(c.targetDate) }))
+      .filter((c) => c.daysLeft >= 0)
+      .sort((a, b) => a.daysLeft - b.daysLeft)[0]
 
   return (
-    <Section id="today" title="Today" subtitle="A small snapshot of our day.">
-      <div className="today-card">
-        {empty ? (
-          <div className="today-empty">
-            <p>Nothing here yet.</p>
-            <div className="today-ctas">
-              <a className="btn btn--secondary" href="#mood">
-                Check in
-              </a>
-              <a className="btn btn--ghost" href="#notes">
-                Leave a note
-              </a>
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="today-row">
-              <p className="today-label">Today&apos;s Mood</p>
-              <p>
-                You: <strong>{myMood?.mood_label || '—'}</strong>
-                <span className="dot">·</span>
-                {partnerName}: <strong>{partnerMood?.mood_label || '—'}</strong>
-              </p>
-            </div>
-            <div className="today-row">
-              <p className="today-label">Today&apos;s Note</p>
-              <p>
-                {latestNote ? (
-                  <>“{latestNote.content}”</>
-                ) : (
-                  <>
-                    Nothing here yet. <a href="#notes">Write one</a>
-                  </>
-                )}
-              </p>
-            </div>
-            <div className="today-row">
-              <p className="today-label">Today&apos;s Plan</p>
-              <p>
-                {activeTodo ? (
-                  activeTodo.title
-                ) : (
-                  <>
-                    Nothing planned. <a href="#todos">Add something</a>
-                  </>
-                )}
-              </p>
-            </div>
-          </>
-        )}
+    <Section id="today" title="Today" subtitle="A quiet snapshot of us.">
+      <div className="today-grid">
+        <article className="today-tile">
+          <p className="today-label">{getPersonName(PERSON_ONE)}&apos;s mood</p>
+          <p className="today-value">
+            {moodOne ? `${moodOne.mood_emoji} ${moodOne.mood_label}` : 'How are you feeling today?'}
+          </p>
+        </article>
+        <article className="today-tile">
+          <p className="today-label">{getPersonName(PERSON_TWO)}&apos;s mood</p>
+          <p className="today-value">
+            {moodTwo ? `${moodTwo.mood_emoji} ${moodTwo.mood_label}` : 'Waiting for a check-in.'}
+          </p>
+        </article>
+        <article className="today-tile today-tile--wide">
+          <p className="today-label">Today&apos;s latest note</p>
+          <p className="today-value today-value--serif">
+            {latestNote ? `“${latestNote.content}”` : 'Leave the first little note.'}
+          </p>
+        </article>
+        <article className="today-tile today-tile--wide">
+          <p className="today-label">Upcoming</p>
+          <p className="today-value">
+            {countdown
+              ? `${countdown.daysLeft} days · ${countdown.title}`
+              : 'Nothing planned yet.'}
+          </p>
+          {countdown ? (
+            <p className="muted tiny">{formatShortDate(countdown.targetDate)}</p>
+          ) : null}
+        </article>
       </div>
     </Section>
   )

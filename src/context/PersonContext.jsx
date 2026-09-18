@@ -5,14 +5,20 @@ import {
   STORAGE_KEY_PERSON,
   getPersonName,
   getPersons,
+  getOtherPerson,
+  normalizePerson,
 } from '../config'
 
 const PersonContext = createContext(null)
 
 function readPerson() {
   try {
-    const value = localStorage.getItem(STORAGE_KEY_PERSON)
-    if (value === PERSON_ONE || value === PERSON_TWO) return value
+    const raw = localStorage.getItem(STORAGE_KEY_PERSON)
+    const normalized = normalizePerson(raw)
+    if (normalized) {
+      if (raw !== normalized) localStorage.setItem(STORAGE_KEY_PERSON, normalized)
+      return normalized
+    }
   } catch {
     /* ignore */
   }
@@ -28,14 +34,23 @@ export function PersonProvider({ children }) {
   }, [person])
 
   const setPerson = useCallback((next) => {
-    if (next !== PERSON_ONE && next !== PERSON_TWO) return
-    setPersonState(next)
+    const normalized = normalizePerson(next)
+    if (!normalized) return
+    setPersonState(normalized)
     try {
-      localStorage.setItem(STORAGE_KEY_PERSON, next)
+      localStorage.setItem(STORAGE_KEY_PERSON, normalized)
     } catch {
       /* ignore */
     }
   }, [])
+
+  const switchPerson = useCallback(() => {
+    if (!person) {
+      setPickerOpen(true)
+      return
+    }
+    setPerson(getOtherPerson(person))
+  }, [person, setPerson])
 
   const openPicker = useCallback(() => setPickerOpen(true), [])
   const closePicker = useCallback(() => {
@@ -47,14 +62,19 @@ export function PersonProvider({ children }) {
     () => ({
       person,
       personName: person ? getPersonName(person) : null,
+      partnerKey: person ? getOtherPerson(person) : null,
+      partnerName: person ? getPersonName(getOtherPerson(person)) : null,
       persons: getPersons(),
       hasPerson: Boolean(person),
       setPerson,
+      switchPerson,
       pickerOpen,
       openPicker,
       closePicker,
+      PERSON_ONE,
+      PERSON_TWO,
     }),
-    [person, setPerson, pickerOpen, openPicker, closePicker]
+    [person, setPerson, switchPerson, pickerOpen, openPicker, closePicker]
   )
 
   return <PersonContext.Provider value={value}>{children}</PersonContext.Provider>
