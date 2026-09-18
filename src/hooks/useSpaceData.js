@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import { getJakartaDateString } from '../utils/date'
 
@@ -25,8 +25,10 @@ export function useSpaceData(enabled = true) {
   const [letters, setLetters] = useState([])
   const [loading, setLoading] = useState(Boolean(enabled))
   const [error, setError] = useState(false)
+  const hasLoadedRef = useRef(false)
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (opts = {}) => {
+    const silent = opts.silent === true
     if (!enabled) {
       setLoading(false)
       return
@@ -37,7 +39,8 @@ export function useSpaceData(enabled = true) {
       return
     }
 
-    setLoading(true)
+    // Skeleton hanya di load pertama — refresh setelah aksi jangan unmount halaman
+    if (!silent && !hasLoadedRef.current) setLoading(true)
     setError(false)
     try {
       const today = getJakartaDateString()
@@ -87,7 +90,6 @@ export function useSpaceData(enabled = true) {
           ),
         ])
 
-      // Critical tables — if notes fail due to missing sender column, try legacy shape
       let notesData = notesRes.data
       if (notesRes.error) {
         const legacy = await safeQuery('notes_legacy', () =>
@@ -146,6 +148,7 @@ export function useSpaceData(enabled = true) {
       setBucketItems(bucketRes.data || [])
       setLetters(lettersRes.data || [])
       setError(criticalFailed)
+      hasLoadedRef.current = true
     } catch (err) {
       console.error(err)
       setError(true)
@@ -157,6 +160,10 @@ export function useSpaceData(enabled = true) {
   useEffect(() => {
     refresh()
   }, [refresh])
+
+  const patchBucketItem = useCallback((id, patch) => {
+    setBucketItems((prev) => prev.map((item) => (item.id === id ? { ...item, ...patch } : item)))
+  }, [])
 
   const latestMoodByPerson = (personKey) =>
     moods.find((m) => m.person === personKey) || null
@@ -173,6 +180,7 @@ export function useSpaceData(enabled = true) {
     loading,
     error,
     refresh,
+    patchBucketItem,
     latestMoodByPerson,
     reactionsForNote,
   }

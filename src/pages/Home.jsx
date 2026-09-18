@@ -28,8 +28,11 @@ export default function Home() {
     loading,
     error,
     refresh,
+    patchBucketItem,
     latestMoodByPerson,
   } = useSpaceData(hasPerson)
+
+  const refreshQuiet = () => refresh({ silent: true })
 
   if (!isSupabaseConfigured) return <ConnectionError />
 
@@ -67,13 +70,17 @@ export default function Home() {
         ) : (
           <>
             <QuickActionsSection onOpenMemory={() => memoriesRef.current?.openUpload?.()} />
-            <MoodSection moodOne={moodOne} moodTwo={moodTwo} onChanged={refresh} />
-            <NotesSection notes={notes} reactions={reactions} onChanged={refresh} />
-            <MemoriesSection ref={memoriesRef} memories={memories} onChanged={refresh} />
+            <MoodSection moodOne={moodOne} moodTwo={moodTwo} onChanged={refreshQuiet} />
+            <NotesSection notes={notes} reactions={reactions} onChanged={refreshQuiet} />
+            <MemoriesSection ref={memoriesRef} memories={memories} onChanged={refreshQuiet} />
             <MusicSection />
-            <BucketListSection items={bucketItems} onChanged={refresh} />
+            <BucketListSection
+              items={bucketItems}
+              onChanged={refreshQuiet}
+              onPatchItem={patchBucketItem}
+            />
             <DailyQuoteSection />
-            <SecretMailboxSection letters={letters} onChanged={refresh} />
+            <SecretMailboxSection letters={letters} onChanged={refreshQuiet} />
           </>
         )
       ) : null}

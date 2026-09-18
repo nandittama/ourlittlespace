@@ -6,11 +6,12 @@ import { usePerson } from '../../context/PersonContext'
 import { useToast } from '../../context/ToastContext'
 import { supabase } from '../../lib/supabase'
 
-export default function BucketListSection({ items, onChanged }) {
+export default function BucketListSection({ items, onChanged, onPatchItem }) {
   const { person, hasPerson } = usePerson()
   const { showToast } = useToast()
   const [title, setTitle] = useState('')
   const [busy, setBusy] = useState(false)
+  const [togglingId, setTogglingId] = useState(null)
   const [pendingDelete, setPendingDelete] = useState(null)
 
   const total = items.length
@@ -45,24 +46,28 @@ export default function BucketListSection({ items, onChanged }) {
   }
 
   const toggle = async (item) => {
-    if (!hasPerson || busy) return
+    if (!hasPerson || togglingId === item.id) return
     const next = item.status === 'completed' ? 'planned' : 'completed'
-    setBusy(true)
+    const completed_date = next === 'completed' ? getJakartaDateString() : null
+    const prevStatus = item.status
+    const prevDate = item.completed_date ?? null
+
+    // Optimistic: ceklis langsung berubah
+    onPatchItem?.(item.id, { status: next, completed_date })
+    setTogglingId(item.id)
+
     try {
       const { error } = await supabase
         .from('bucket_items')
-        .update({
-          status: next,
-          completed_date: next === 'completed' ? getJakartaDateString() : null,
-        })
+        .update({ status: next, completed_date })
         .eq('id', item.id)
       if (error) throw error
-      onChanged?.()
     } catch (err) {
       console.error(err)
+      onPatchItem?.(item.id, { status: prevStatus, completed_date: prevDate })
       showToast('Ada yang kurang beres 🤍 Coba lagi ya.', 'error')
     } finally {
-      setBusy(false)
+      setTogglingId(null)
     }
   }
 
@@ -132,8 +137,9 @@ export default function BucketListSection({ items, onChanged }) {
                   type="button"
                   className="bucket-check"
                   onClick={() => toggle(item)}
-                  disabled={busy || !hasPerson}
+                  disabled={!hasPerson || togglingId === item.id}
                   aria-label={`Tandai ${item.title}`}
+                  aria-pressed={item.status === 'completed'}
                 >
                   {item.status === 'completed' ? '☑' : '☐'}
                 </button>

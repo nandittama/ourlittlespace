@@ -26,7 +26,7 @@ export function getWhatsAppUrl(localNumber = WHATSAPP_NUMBER) {
   return `https://wa.me/${intl}`
 }
 
-export const APP_NAME = 'ruang kecil'
+export const APP_NAME = 'Our Little Space'
 export const APP_TAGLINE = 'Ruang kecil milik kita berdua.'
 export const APP_SUBTITLE = 'ruang kecil'
 

@@ -1,6 +1,6 @@
 {
-  "name": "ruang kecil",
-  "short_name": "ruang kecil",
+  "name": "Our Little Space",
+  "short_name": "Little Space",
   "description": "Ruang kecil milik kita berdua.",
   "start_url": "/",
   "display": "standalone",
