@@ -732,7 +732,7 @@ a:focus-visible {
 
 .mood-choices {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.5rem;
   margin-bottom: 0.85rem;
 }
@@ -741,8 +741,11 @@ a:focus-visible {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 0.25rem;
+  width: 100%;
   min-height: 64px;
+  padding: 0.45rem 0.25rem;
   border: 1px solid var(--border);
   border-radius: 14px;
   background: var(--bg-soft);
@@ -1541,10 +1544,6 @@ a:focus-visible {
 }
 
 @media (min-width: 640px) {
-  .mood-choices {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
   .quick-actions {
     grid-template-columns: repeat(4, 1fr);
   }
