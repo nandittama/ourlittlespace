@@ -2,7 +2,6 @@ import { PERSONS } from '../config'
 import { usePerson } from '../context/PersonContext'
 import { useToast } from '../context/ToastContext'
 
-/** Only used when no persona is chosen yet — compact gate, not a full settings page. */
 export default function PersonPickerModal() {
   const { person, setPerson, pickerOpen, closePicker, hasPerson } = usePerson()
   const { showToast } = useToast()
@@ -13,7 +12,7 @@ export default function PersonPickerModal() {
     <div className="person-modal" role="dialog" aria-modal="true" aria-labelledby="person-modal-title">
       <div className="person-modal__card">
         <h2 id="person-modal-title">Who&apos;s here?</h2>
-        <p className="muted">Nadhif or Diah — just for this device.</p>
+        <p className="muted">Nadhif atau Diah — hanya untuk perangkat ini.</p>
         <div className="person-pick">
           {PERSONS.map((p) => (
             <button
@@ -23,7 +22,7 @@ export default function PersonPickerModal() {
               onClick={() => {
                 setPerson(p.key)
                 closePicker()
-                showToast(`Hi, ${p.name}.`, 'success')
+                showToast(`Hai, ${p.name}.`, 'success')
               }}
             >
               {p.name}

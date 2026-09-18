@@ -25,10 +25,20 @@ const MemoriesSection = forwardRef(function MemoriesSection({ memories, onChange
   const [file, setFile] = useState(null)
   const [pendingDelete, setPendingDelete] = useState(null)
   const [lightbox, setLightbox] = useState(null)
+  const [surprise, setSurprise] = useState(null)
 
   useImperativeHandle(ref, () => ({
     openUpload: () => setOpen(true),
   }))
+
+  const surpriseMe = () => {
+    if (!memories.length) {
+      showToast('Belum ada memory untuk diingat.', 'error')
+      return
+    }
+    const pick = memories[Math.floor(Math.random() * memories.length)]
+    setSurprise(pick)
+  }
 
   const previewUrl = useMemo(() => (file ? URL.createObjectURL(file) : null), [file])
   useEffect(() => () => previewUrl && URL.revokeObjectURL(previewUrl), [previewUrl])
@@ -114,14 +124,19 @@ const MemoriesSection = forwardRef(function MemoriesSection({ memories, onChange
   }
 
   return (
-    <Section id="memories" title="Little Memories" subtitle="Some moments are worth keeping.">
+    <Section id="memories" title="Little Memories" subtitle="Beberapa momen layak dikenang.">
       <div className="section-actions row-between">
-        <button type="button" className="btn btn--secondary" onClick={() => setOpen((v) => !v)}>
-          {open ? 'Cancel' : 'Add memory'}
-        </button>
+        <div className="row-between" style={{ gap: '0.5rem', flexWrap: 'wrap' }}>
+          <button type="button" className="btn btn--secondary" onClick={() => setOpen((v) => !v)}>
+            {open ? 'Batal' : 'Tambah memory'}
+          </button>
+          <button type="button" className="btn btn--ghost btn--sm" onClick={surpriseMe}>
+            ✨ Surprise Me
+          </button>
+        </div>
         {memories.length > 6 ? (
           <button type="button" className="linkish" onClick={() => setExpanded((v) => !v)}>
-            {expanded ? 'Show less' : `View all memories (${memories.length})`}
+            {expanded ? 'Tampilkan lebih sedikit' : `Lihat semua (${memories.length})`}
           </button>
         ) : null}
       </div>
@@ -177,7 +192,7 @@ const MemoriesSection = forwardRef(function MemoriesSection({ memories, onChange
       ) : null}
 
       {memories.length === 0 ? (
-        <p className="empty">Maybe this is the perfect place for your first photo.</p>
+        <p className="empty">Belum ada memory 🤍 Yuk buat yang pertama.</p>
       ) : (
         <div className="memory-grid">
           {visible.map((memory) => (
@@ -197,6 +212,29 @@ const MemoriesSection = forwardRef(function MemoriesSection({ memories, onChange
           ))}
         </div>
       )}
+
+      {surprise ? (
+        <div
+          className="lightbox"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Remember this?"
+          onClick={() => setSurprise(null)}
+        >
+          <div className="lightbox__card" onClick={(e) => e.stopPropagation()}>
+            <img src={publicUrl(surprise.image_url)} alt={surprise.title} />
+            <div className="lightbox__body">
+              <p className="muted tiny">Remember this?</p>
+              <h3>{surprise.title}</h3>
+              <p className="muted tiny">{formatShortDate(surprise.memory_date)}</p>
+              {surprise.description ? <p>“{surprise.description}”</p> : null}
+              <button type="button" className="btn btn--secondary" onClick={() => setSurprise(null)}>
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {lightbox ? (
         <div

@@ -1,54 +1,80 @@
+/** Central couple configuration — edit here only */
+export const COUPLE_CONFIG = {
+  personOne: 'Nadhif',
+  personTwo: 'Diah',
+  anniversaryDate: '2024-05-30',
+  timezone: 'Asia/Jakarta',
+  relationshipVibe: 'Cozy & In Love',
+}
+
 export const PERSON_ONE = 'nadhif'
 export const PERSON_TWO = 'diah'
-
-export const PERSON_ONE_NAME = 'Nadhif'
-export const PERSON_TWO_NAME = 'Diah'
-
+export const PERSON_ONE_NAME = COUPLE_CONFIG.personOne
+export const PERSON_TWO_NAME = COUPLE_CONFIG.personTwo
 export const STORAGE_KEY_PERSON = 'current_person'
-
-/** Relationship start / anniversary (Asia/Jakarta business date) */
-export const ANNIVERSARY_DATE = '2026-09-04'
-
-export const RELATIONSHIP_VIBE = 'Cozy & In Love'
-export const TIMEZONE = 'Asia/Jakarta'
+export const ANNIVERSARY_DATE = COUPLE_CONFIG.anniversaryDate
+export const RELATIONSHIP_VIBE = COUPLE_CONFIG.relationshipVibe
+export const TIMEZONE = COUPLE_CONFIG.timezone
 
 export const APP_NAME = 'Our Little Space'
-export const APP_TAGLINE = 'A little space for us.'
-export const APP_SUBTITLE = 'Ruang kecil Nadhif & Diah.'
+export const APP_TAGLINE = 'Ruang kecil milik kita berdua.'
+export const APP_SUBTITLE = 'Ruang Cinta Nadhif & Diah'
 
-/** Next / named countdowns (editable here) */
 export const COUNTDOWNS = [
   {
     id: 'trip',
-    label: 'Upcoming Trip',
-    title: 'Liburan ke Jogja',
+    label: 'Next Little Adventure',
+    title: 'Jogja',
+    emoji: '✈️',
     targetDate: '2026-10-02',
     kind: 'once',
   },
   {
     id: 'years3',
-    label: 'Relationship Milestone',
+    label: 'Our Next Anniversary',
     title: '3 Years Together',
+    emoji: '❤️',
     targetDate: '2027-05-30',
-    kind: 'once',
+    kind: 'anniversary',
   },
 ]
 
-/** Our song — put file in /public/audio/ or leave empty */
 export const OUR_SONG = {
   title: 'Kita Bikin Romantis',
   artist: "MALIQ & D'Essentials",
-  label: 'Our song',
+  label: 'Our Song',
   src: '/audio/our-song.mp3',
   artwork: '/audio/our-song-cover.jpg',
 }
 
 export const DAILY_QUOTES = [
-  'Cinta bukan tentang mencari orang yang sempurna, melainkan menikmati setiap hal kecil yang sederhana bersamamu.',
   'Cinta tumbuh dari hal-hal kecil yang dilakukan bersama.',
-  'In the little moments, we find our biggest home.',
-  'Two hearts, one quiet space.',
-  'The best stories are written slowly, side by side.',
+  'Dalam momen yang sederhana, kita menemukan rumah.',
+  'Dua hati, satu ruang kecil yang tenang.',
+  'Cerita terbaik ditulis pelan-pelan, berdampingan.',
+  'Bukan tentang sempurna — tentang hadir untuk satu sama lain.',
+]
+
+/** Static timeline — Our Story (no admin needed) */
+export const TIMELINE_EVENTS = [
+  {
+    id: 'begin',
+    date: '2024-05-30',
+    title: 'The Beginning',
+    description: 'Di sini cerita kecil kita dimulai.',
+  },
+  {
+    id: 'rain',
+    date: '2024-07-15',
+    title: 'Our First Trip',
+    description: 'Hari itu kita kehujanan — dan tetap tertawa.',
+  },
+  {
+    id: 'christmas',
+    date: '2024-12-24',
+    title: 'Christmas Together',
+    description: 'Natal pertama yang kita rayakan bersama.',
+  },
 ]
 
 export function getPersonName(personKey) {
@@ -69,7 +95,6 @@ export function getOtherPerson(key) {
   return normalized === PERSON_ONE ? PERSON_TWO : PERSON_ONE
 }
 
-/** Map legacy keys + names → canonical person id */
 export function normalizePerson(value) {
   if (!value) return null
   const v = String(value).toLowerCase()
@@ -78,7 +103,6 @@ export function normalizePerson(value) {
   return null
 }
 
-// Back-compat
 export const DEFAULT_PERSON_ONE_NAME = PERSON_ONE_NAME
 export const DEFAULT_PERSON_TWO_NAME = PERSON_TWO_NAME
 export const RELATIONSHIP_START = ANNIVERSARY_DATE

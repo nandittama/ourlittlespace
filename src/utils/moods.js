@@ -2,9 +2,9 @@ export const MOODS = [
   { key: 'happy', emoji: '😊', label: 'Happy' },
   { key: 'loved', emoji: '🥰', label: 'Loved' },
   { key: 'calm', emoji: '😌', label: 'Calm' },
-  { key: 'okay', emoji: '😐', label: 'Okay' },
-  { key: 'sad', emoji: '😔', label: 'Sad' },
-  { key: 'angry', emoji: '😡', label: 'Angry' },
+  { key: 'okay', emoji: '🙂', label: 'Okay' },
+  { key: 'sad', emoji: '🥺', label: 'Sad' },
+  { key: 'angry', emoji: '😠', label: 'Angry' },
   { key: 'tired', emoji: '😴', label: 'Tired' },
 ]
 

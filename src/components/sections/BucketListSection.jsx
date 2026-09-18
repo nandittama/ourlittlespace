@@ -6,12 +6,6 @@ import { usePerson } from '../../context/PersonContext'
 import { useToast } from '../../context/ToastContext'
 import { supabase } from '../../lib/supabase'
 
-const STATUS_LABEL = {
-  planned: 'Rencana',
-  someday: 'Impian',
-  completed: 'Tercapai',
-}
-
 export default function BucketListSection({ items, onChanged }) {
   const { person, hasPerson } = usePerson()
   const { showToast } = useToast()
@@ -28,7 +22,7 @@ export default function BucketListSection({ items, onChanged }) {
     if (!hasPerson || busy) return
     const text = title.trim()
     if (!text) {
-      showToast('Write a dream first.', 'error')
+      showToast('Tulis rencananya dulu.', 'error')
       return
     }
     setBusy(true)
@@ -40,20 +34,19 @@ export default function BucketListSection({ items, onChanged }) {
       })
       if (error) throw error
       setTitle('')
-      showToast('Saved.', 'success')
+      showToast('Ditambahkan.', 'success')
       onChanged?.()
     } catch (err) {
       console.error(err)
-      showToast('Something went wrong. Please try again.', 'error')
+      showToast('Ada yang kurang beres 🤍 Coba lagi ya.', 'error')
     } finally {
       setBusy(false)
     }
   }
 
-  const cycleStatus = async (item) => {
+  const toggle = async (item) => {
     if (!hasPerson || busy) return
-    const order = ['planned', 'someday', 'completed']
-    const next = order[(order.indexOf(item.status) + 1) % order.length]
+    const next = item.status === 'completed' ? 'planned' : 'completed'
     setBusy(true)
     try {
       const { error } = await supabase
@@ -67,7 +60,7 @@ export default function BucketListSection({ items, onChanged }) {
       onChanged?.()
     } catch (err) {
       console.error(err)
-      showToast('Something went wrong. Please try again.', 'error')
+      showToast('Ada yang kurang beres 🤍 Coba lagi ya.', 'error')
     } finally {
       setBusy(false)
     }
@@ -80,18 +73,23 @@ export default function BucketListSection({ items, onChanged }) {
       const { error } = await supabase.from('bucket_items').delete().eq('id', pendingDelete)
       if (error) throw error
       setPendingDelete(null)
-      showToast('Deleted.', 'success')
+      showToast('Dihapus.', 'success')
       onChanged?.()
     } catch (err) {
       console.error(err)
-      showToast('Something went wrong. Please try again.', 'error')
+      showToast('Ada yang kurang beres 🤍 Coba lagi ya.', 'error')
     } finally {
       setBusy(false)
     }
   }
 
   return (
-    <Section id="bucket" title="Things We Want To Do" subtitle="Little dreams, slowly collected.">
+    <Section
+      id="bucket"
+      title="Our Little Bucket List"
+      subtitle="Hal-hal yang ingin kita lakukan bersama."
+      className="section--secondary"
+    >
       {total > 0 ? (
         <div className="bucket-progress">
           <div className="row-between">
@@ -108,41 +106,38 @@ export default function BucketListSection({ items, onChanged }) {
 
       <form className="inline-form" onSubmit={add}>
         <label className="sr-only" htmlFor="bucket-title">
-          New dream
+          Item baru
         </label>
         <input
           id="bucket-title"
           value={title}
           maxLength={120}
-          placeholder="Tambah impian baru kita..."
+          placeholder="Add something we should do together..."
           onChange={(e) => setTitle(e.target.value)}
           disabled={!hasPerson || busy}
         />
-        <button type="submit" className="btn btn--primary" disabled={busy || !hasPerson} aria-label="Add">
-          +
+        <button type="submit" className="btn btn--primary" disabled={busy || !hasPerson}>
+          Add
         </button>
       </form>
 
       <ul className="todo-list">
         {items.length === 0 ? (
-          <li className="empty">What&apos;s something you want us to do together?</li>
+          <li className="empty">Belum ada di list. Apa yang ingin kita lakukan bersama?</li>
         ) : (
           items.map((item) => (
             <li key={item.id} className={`todo-row ${item.status === 'completed' ? 'is-done' : ''}`}>
               <button
                 type="button"
                 className="bucket-check"
-                onClick={() => cycleStatus(item)}
+                onClick={() => toggle(item)}
                 disabled={busy || !hasPerson}
-                aria-label={`Mark ${item.title}`}
+                aria-label={`Tandai ${item.title}`}
               >
-                {item.status === 'completed' ? '✓' : '○'}
+                {item.status === 'completed' ? '☑' : '☐'}
               </button>
               <div className="todo-row__main">
                 <span>{item.title}</span>
-                <small>
-                  <span className="todo-status">{STATUS_LABEL[item.status]}</span>
-                </small>
               </div>
               <button
                 type="button"
@@ -150,7 +145,7 @@ export default function BucketListSection({ items, onChanged }) {
                 disabled={busy}
                 onClick={() => setPendingDelete(item.id)}
               >
-                Delete
+                Hapus
               </button>
             </li>
           ))
@@ -159,7 +154,9 @@ export default function BucketListSection({ items, onChanged }) {
 
       <ConfirmDialog
         open={Boolean(pendingDelete)}
-        title="Delete this dream?"
+        title="Hapus item ini?"
+        confirmLabel="Hapus"
+        cancelLabel="Batal"
         busy={busy}
         onCancel={() => setPendingDelete(null)}
         onConfirm={confirmDelete}

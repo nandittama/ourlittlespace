@@ -1,15 +1,51 @@
-import { useEffect, useRef, useState } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import Section from '../Section'
 import { OUR_SONG } from '../../config'
 import { formatAudioTime } from '../../utils/date'
 
-export default function MusicSection() {
+const MusicSection = forwardRef(function MusicSection(_, ref) {
   const audioRef = useRef(null)
   const [playing, setPlaying] = useState(false)
   const [current, setCurrent] = useState(0)
   const [duration, setDuration] = useState(0)
   const [unavailable, setUnavailable] = useState(false)
   const [liked, setLiked] = useState(false)
+
+  const toggle = async () => {
+    const audio = audioRef.current
+    if (!audio || unavailable) return
+    try {
+      if (playing) {
+        audio.pause()
+        setPlaying(false)
+      } else {
+        await audio.play()
+        setPlaying(true)
+      }
+    } catch (err) {
+      console.error(err)
+      setUnavailable(true)
+    }
+  }
+
+  useImperativeHandle(ref, () => ({
+    togglePlay: async () => {
+      const audio = audioRef.current
+      if (!audio || unavailable) return
+      try {
+        if (audio.paused) {
+          await audio.play()
+          setPlaying(true)
+        } else {
+          audio.pause()
+          setPlaying(false)
+        }
+      } catch (err) {
+        console.error(err)
+        setUnavailable(true)
+      }
+    },
+  }))
 
   useEffect(() => {
     const audio = audioRef.current
@@ -35,23 +71,6 @@ export default function MusicSection() {
     }
   }, [])
 
-  const toggle = async () => {
-    const audio = audioRef.current
-    if (!audio || unavailable) return
-    try {
-      if (playing) {
-        audio.pause()
-        setPlaying(false)
-      } else {
-        await audio.play()
-        setPlaying(true)
-      }
-    } catch (err) {
-      console.error(err)
-      setUnavailable(true)
-    }
-  }
-
   const seek = (e) => {
     const audio = audioRef.current
     if (!audio || !duration) return
@@ -61,7 +80,7 @@ export default function MusicSection() {
   }
 
   return (
-    <Section id="music" title="Our Song" subtitle="A little soundtrack for us.">
+    <Section id="music" title="Our Song" subtitle="Soundtrack kecil untuk kita.">
       <div className="music-card">
         <div className="music-card__art" aria-hidden="true">
           {OUR_SONG.artwork ? (
@@ -81,7 +100,7 @@ export default function MusicSection() {
           <p className="muted">{OUR_SONG.artist}</p>
 
           {unavailable ? (
-            <p className="muted">Our song isn&apos;t available right now.</p>
+            <p className="muted">Lagu kita belum tersedia saat ini.</p>
           ) : (
             <>
               <input
@@ -92,7 +111,7 @@ export default function MusicSection() {
                 step={0.1}
                 value={current}
                 onChange={seek}
-                aria-label="Song progress"
+                aria-label="Progress lagu"
               />
               <div className="music-times muted tiny">
                 <span>{formatAudioTime(current)}</span>
@@ -104,14 +123,14 @@ export default function MusicSection() {
                   id="music-play"
                   className="btn btn--primary music-play"
                   onClick={toggle}
-                  aria-label={playing ? 'Pause' : 'Play'}
+                  aria-label={playing ? 'Jeda' : 'Putar'}
                 >
                   {playing ? 'Pause' : 'Play'}
                 </button>
                 <button
                   type="button"
                   className={`icon-btn ${liked ? 'is-on' : ''}`}
-                  aria-label="Favorite"
+                  aria-label="Favorit"
                   onClick={() => setLiked((v) => !v)}
                 >
                   ♥
@@ -124,4 +143,6 @@ export default function MusicSection() {
       <audio ref={audioRef} src={OUR_SONG.src} preload="metadata" />
     </Section>
   )
-}
+})
+
+export default MusicSection

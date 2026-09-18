@@ -1,47 +1,46 @@
 import Section from '../Section'
 import { PERSON_ONE, PERSON_TWO, getPersonName } from '../../config'
-import { daysUntil, formatShortDate } from '../../utils/date'
-import { COUNTDOWNS } from '../../config'
+import { formatTodayShort, isJakartaToday } from '../../utils/date'
 
-export default function TodaySection({ moodOne, moodTwo, latestNote, nextCountdown }) {
-  const countdown =
-    nextCountdown ||
-    COUNTDOWNS.map((c) => ({ ...c, daysLeft: daysUntil(c.targetDate) }))
-      .filter((c) => c.daysLeft >= 0)
-      .sort((a, b) => a.daysLeft - b.daysLeft)[0]
+export default function TodaySection({ moodOne, moodTwo, notes, nextCountdown }) {
+  const todayNotes = (notes || []).filter((n) => isJakartaToday(n.created_at))
+  const hasAnything = Boolean(moodOne || moodTwo || todayNotes.length || nextCountdown)
 
   return (
-    <Section id="today" title="Today" subtitle="A quiet snapshot of us.">
-      <div className="today-grid">
-        <article className="today-tile">
-          <p className="today-label">{getPersonName(PERSON_ONE)}&apos;s mood</p>
-          <p className="today-value">
-            {moodOne ? `${moodOne.mood_emoji} ${moodOne.mood_label}` : 'How are you feeling today?'}
-          </p>
-        </article>
-        <article className="today-tile">
-          <p className="today-label">{getPersonName(PERSON_TWO)}&apos;s mood</p>
-          <p className="today-value">
-            {moodTwo ? `${moodTwo.mood_emoji} ${moodTwo.mood_label}` : 'Waiting for a check-in.'}
-          </p>
-        </article>
-        <article className="today-tile today-tile--wide">
-          <p className="today-label">Today&apos;s latest note</p>
-          <p className="today-value today-value--serif">
-            {latestNote ? `“${latestNote.content}”` : 'Leave the first little note.'}
-          </p>
-        </article>
-        <article className="today-tile today-tile--wide">
-          <p className="today-label">Upcoming</p>
-          <p className="today-value">
-            {countdown
-              ? `${countdown.daysLeft} days · ${countdown.title}`
-              : 'Nothing planned yet.'}
-          </p>
-          {countdown ? (
-            <p className="muted tiny">{formatShortDate(countdown.targetDate)}</p>
-          ) : null}
-        </article>
+    <Section id="today" title="Today With Us" subtitle="Sedikit kabar dari hari ini.">
+      <div className="today-card">
+        <p className="today-date">Today, {formatTodayShort()}</p>
+
+        {!hasAnything ? (
+          <p className="today-empty-line">Nothing new today, just us 🤍</p>
+        ) : (
+          <div className="today-lines">
+            <div className="today-person-row">
+              <span>{getPersonName(PERSON_ONE)}</span>
+              <strong>
+                {moodOne ? `${moodOne.mood_emoji} ${moodOne.mood_label}` : '—'}
+              </strong>
+            </div>
+            <div className="today-person-row">
+              <span>{getPersonName(PERSON_TWO)}</span>
+              <strong>
+                {moodTwo ? `${moodTwo.mood_emoji} ${moodTwo.mood_label}` : '—'}
+              </strong>
+            </div>
+            <p className="today-chip">
+              💌{' '}
+              {todayNotes.length > 0
+                ? `${todayNotes.length} note hari ini`
+                : 'Belum ada note hari ini'}
+            </p>
+            {nextCountdown ? (
+              <p className="today-chip">
+                {nextCountdown.emoji || '✈️'} {nextCountdown.daysLeft} hari menuju{' '}
+                {nextCountdown.title}
+              </p>
+            ) : null}
+          </div>
+        )}
       </div>
     </Section>
   )

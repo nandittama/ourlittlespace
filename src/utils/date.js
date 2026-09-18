@@ -30,6 +30,14 @@ export function getJakartaDateString(date = new Date()) {
   return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 }
 
+export function isJakartaToday(dateValue) {
+  if (!dateValue) return false
+  if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+    return dateValue === getJakartaDateString()
+  }
+  return getJakartaDateString(new Date(dateValue)) === getJakartaDateString()
+}
+
 export function parseDateOnly(iso) {
   if (!iso) return null
   const [y, m, d] = iso.split('-').map(Number)
@@ -73,10 +81,25 @@ export function nextAnniversaryDate(anniversaryIso) {
 export function getGreeting(displayName) {
   const { hour } = getJakartaParts()
   const name = displayName || 'there'
-  if (hour >= 5 && hour < 12) return `Good morning, ${name}.`
-  if (hour >= 12 && hour < 17) return `Good afternoon, ${name}.`
-  if (hour >= 17 && hour < 21) return `Good evening, ${name}.`
-  return `Good night, ${name}.`
+  if (hour >= 5 && hour < 12) return `Good morning, ${name} ☀️`
+  if (hour >= 12 && hour < 17) return `Hope you're having a lovely day, ${name} 🤍`
+  if (hour >= 17 && hour < 21) return `Good evening, ${name} 🌙`
+  return `Good night, ${name} 🌙`
+}
+
+export function formatTodayShort() {
+  const iso = getJakartaDateString()
+  const [y, m, d] = iso.split('-').map(Number)
+  return format(new Date(y, m - 1, d), 'd MMMM yyyy', { locale: enUS })
+}
+
+export function pickDailyQuote(quotes) {
+  if (!quotes?.length) return ''
+  const { year, month, day } = getJakartaParts()
+  const start = Date.UTC(year, 0, 0)
+  const now = Date.UTC(year, month - 1, day)
+  const dayOfYear = Math.floor((now - start) / 86400000)
+  return quotes[dayOfYear % quotes.length]
 }
 
 export function formatTodayLong() {
@@ -137,13 +160,6 @@ export function formatNoteWhen(dateValue) {
 
 export function formatAnniversaryLabel(iso) {
   return formatShortDate(iso)
-}
-
-export function pickDailyQuote(quotes) {
-  if (!quotes?.length) return ''
-  const day = getJakartaDateString().replace(/-/g, '')
-  const idx = Number(day) % quotes.length
-  return quotes[idx]
 }
 
 export function formatAudioTime(seconds) {

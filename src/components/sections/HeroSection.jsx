@@ -1,7 +1,6 @@
 import {
   APP_NAME,
   APP_SUBTITLE,
-  APP_TAGLINE,
   ANNIVERSARY_DATE,
   RELATIONSHIP_VIBE,
   PERSON_ONE_NAME,
@@ -9,7 +8,6 @@ import {
 } from '../../config'
 import {
   formatAnniversaryLabel,
-  formatTodayLong,
   getDaysTogether,
   getGreeting,
 } from '../../utils/date'
@@ -37,25 +35,24 @@ export default function HeroSection({ myMood, partnerMood }) {
       <div className="hero__card">
         <p className="hero__eyebrow">{APP_SUBTITLE}</p>
         <h1 className="hero__title">
-          {hasPerson ? getGreeting(personName) : `Welcome to ${APP_NAME}`}
+          {hasPerson ? getGreeting(personName) : `Selamat datang di ${APP_NAME}`}
         </h1>
-        <p className="hero__tagline">{APP_TAGLINE}</p>
-        <p className="hero__meta muted">
-          Together for <strong>{days}</strong> days · Together since {formatAnniversaryLabel(ANNIVERSARY_DATE)}
+        <p className="hero__meta">
+          Together for <strong>{days}</strong> days
         </p>
-        <p className="hero__date muted">{formatTodayLong()}</p>
+        <p className="hero__date muted">Since {formatAnniversaryLabel(ANNIVERSARY_DATE)}</p>
 
         {hasPerson ? (
           <>
             <div className="persona-switcher">
               <div>
-                <p className="persona-switcher__label">You&apos;re here as</p>
+                <p className="persona-switcher__label">Kamu di sini sebagai</p>
                 <p className="persona-switcher__name">
-                  {personName} <span className="online-dot">active</span>
+                  {personName} <span className="online-dot">aktif</span>
                 </p>
               </div>
               <button type="button" className="btn btn--secondary btn--sm" onClick={switchPerson}>
-                Switch to {partnerName}
+                Ganti ke {partnerName}
               </button>
             </div>
 
@@ -66,7 +63,7 @@ export default function HeroSection({ myMood, partnerMood }) {
                 </span>
                 <p>
                   {myMood
-                    ? `${myMood.mood_label}${myMood.message ? ` · ${myMood.message}` : ''}`
+                    ? `${myMood.mood_emoji} ${myMood.mood_label}${myMood.message ? ` · ${myMood.message}` : ''}`
                     : 'Belum check-in hari ini'}
                 </p>
               </div>
@@ -76,12 +73,12 @@ export default function HeroSection({ myMood, partnerMood }) {
                 </span>
                 <p>
                   {partnerMood
-                    ? `${partnerMood.mood_label}${partnerMood.message ? ` · ${partnerMood.message}` : ''}`
+                    ? `${partnerMood.mood_emoji} ${partnerMood.mood_label}${partnerMood.message ? ` · ${partnerMood.message}` : ''}`
                     : 'Belum check-in hari ini'}
                 </p>
               </div>
             </div>
-            <p className="hero__scroll muted">Scroll to explore</p>
+            <p className="hero__scroll muted">Geser ke bawah untuk menjelajah</p>
           </>
         ) : (
           <p className="muted">Pilih siapa yang memakai dulu.</p>

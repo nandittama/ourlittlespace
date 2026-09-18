@@ -2,19 +2,17 @@ import { useState } from 'react'
 import { usePerson } from '../../context/PersonContext'
 import { useToast } from '../../context/ToastContext'
 import { supabase } from '../../lib/supabase'
+import { getPersonName, getOtherPerson } from '../../config'
 
 function scrollTo(id, focusSelector) {
-  const el = document.getElementById(id)
-  el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   if (focusSelector) {
-    window.setTimeout(() => {
-      document.querySelector(focusSelector)?.focus?.()
-    }, 450)
+    window.setTimeout(() => document.querySelector(focusSelector)?.focus?.(), 450)
   }
 }
 
-export default function QuickActionsSection({ onOpenMemory }) {
-  const { person, hasPerson } = usePerson()
+export default function QuickActionsSection({ onOpenMemory, onToggleMusic }) {
+  const { person, hasPerson, partnerName } = usePerson()
   const { showToast } = useToast()
   const [hugPulse, setHugPulse] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -28,17 +26,14 @@ export default function QuickActionsSection({ onOpenMemory }) {
     } catch (err) {
       console.error(err)
     }
-    showToast('Sent a little hug. 🫂', 'success')
+    const to = partnerName || getPersonName(getOtherPerson(person))
+    showToast(`A warm hug has been sent to ${to} 🤍`, 'success')
     window.setTimeout(() => setHugPulse(false), 700)
     setBusy(false)
   }
 
   return (
     <section id="actions" className="quick-actions" aria-label="Quick actions">
-      <button type="button" className={`qa-btn ${hugPulse ? 'is-pulse' : ''}`} onClick={sendHug}>
-        <span aria-hidden="true">🫂</span>
-        Send a Hug
-      </button>
       <button
         type="button"
         className="qa-btn"
@@ -49,17 +44,6 @@ export default function QuickActionsSection({ onOpenMemory }) {
       </button>
       <button
         type="button"
-        className="qa-btn"
-        onClick={() => {
-          scrollTo('music')
-          window.setTimeout(() => document.getElementById('music-play')?.click(), 400)
-        }}
-      >
-        <span aria-hidden="true">🎵</span>
-        Play Our Song
-      </button>
-      <button
-        type="button"
         className="qa-btn qa-btn--accent"
         onClick={() => {
           scrollTo('memories')
@@ -67,7 +51,27 @@ export default function QuickActionsSection({ onOpenMemory }) {
         }}
       >
         <span aria-hidden="true">📸</span>
-        Add a Memory
+        Add Memory
+      </button>
+      <button
+        type="button"
+        className="qa-btn"
+        onClick={() => {
+          scrollTo('music')
+          onToggleMusic?.()
+        }}
+      >
+        <span aria-hidden="true">🎵</span>
+        Play Our Song
+      </button>
+      <button
+        type="button"
+        className={`qa-btn ${hugPulse ? 'is-pulse' : ''}`}
+        onClick={sendHug}
+        disabled={busy}
+      >
+        <span aria-hidden="true">🤗</span>
+        Send a Hug
       </button>
     </section>
   )

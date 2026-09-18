@@ -7,7 +7,7 @@ import { usePerson } from '../../context/PersonContext'
 import { useToast } from '../../context/ToastContext'
 import { supabase } from '../../lib/supabase'
 
-function MoodCard({ name, mood, empty }) {
+function MoodCard({ name, mood }) {
   return (
     <div className="mood-side">
       <p className="mood-side__who">{name}</p>
@@ -18,10 +18,12 @@ function MoodCard({ name, mood, empty }) {
           </p>
           <p className="mood-side__label">{mood.mood_label}</p>
           {mood.message ? <p className="mood-side__msg">“{mood.message}”</p> : null}
-          <p className="muted tiny">Updated {formatRelativeTime(mood.updated_at || mood.created_at)}</p>
+          <p className="muted tiny">
+            Diperbarui {formatRelativeTime(mood.updated_at || mood.created_at)}
+          </p>
         </>
       ) : (
-        <p className="muted">{empty}</p>
+        <p className="muted">Bagaimana perasaanmu hari ini?</p>
       )}
     </div>
   )
@@ -38,7 +40,7 @@ export default function MoodSection({ moodOne, moodTwo, onChanged }) {
     if (!hasPerson || saving) return
     const mood = MOODS.find((m) => m.key === selected)
     if (!mood) {
-      showToast('Pick a mood first.', 'error')
+      showToast('Pilih mood dulu ya.', 'error')
       return
     }
     setSaving(true)
@@ -57,34 +59,26 @@ export default function MoodSection({ moodOne, moodTwo, onChanged }) {
       )
       if (error) throw error
       setMessage('')
-      showToast('Mood saved.', 'success')
+      showToast('Mood tersimpan.', 'success')
       onChanged?.()
     } catch (err) {
       console.error(err)
-      showToast('Something went wrong. Please try again.', 'error')
+      showToast('Ada yang kurang beres 🤍 Coba lagi ya.', 'error')
     } finally {
       setSaving(false)
     }
   }
 
   return (
-    <Section id="mood" title="How are we feeling?" subtitle="A tiny check-in for today.">
+    <Section id="mood" title="Our Mood" subtitle="Check-in kecil untuk hari ini.">
       <div className="mood-duo">
-        <MoodCard
-          name={getPersonName(PERSON_ONE)}
-          mood={moodOne}
-          empty="How are you feeling today?"
-        />
-        <MoodCard
-          name={getPersonName(PERSON_TWO)}
-          mood={moodTwo}
-          empty={`${getPersonName(PERSON_TWO)} hasn't checked in yet.`}
-        />
+        <MoodCard name={getPersonName(PERSON_ONE)} mood={moodOne} />
+        <MoodCard name={getPersonName(PERSON_TWO)} mood={moodTwo} />
       </div>
 
       <div className="card form-card">
-        <p className="card-label">Update mood{personName ? ` · ${personName}` : ''}</p>
-        <div className="mood-choices" role="group" aria-label="Mood choices">
+        <p className="card-label">Bagaimana perasaanmu hari ini?{personName ? ` · ${personName}` : ''}</p>
+        <div className="mood-choices" role="group" aria-label="Pilihan mood">
           {MOODS.map((mood) => (
             <button
               key={mood.key}
@@ -99,13 +93,13 @@ export default function MoodSection({ moodOne, moodTwo, onChanged }) {
           ))}
         </div>
         <label className="field">
-          <span>Want to say something?</span>
+          <span>Mau bilang sesuatu? (opsional)</span>
           <input
             type="text"
             maxLength={200}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Optional"
+            placeholder="Feeling good today ❤️"
             disabled={!hasPerson || saving}
           />
         </label>
@@ -115,7 +109,7 @@ export default function MoodSection({ moodOne, moodTwo, onChanged }) {
           disabled={saving || !hasPerson || !selected}
           onClick={save}
         >
-          {saving ? 'Saving...' : 'Save mood'}
+          {saving ? 'Menyimpan...' : 'Simpan mood'}
         </button>
       </div>
     </Section>
