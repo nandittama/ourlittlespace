@@ -394,6 +394,35 @@ textarea:focus {
   white-space: nowrap;
 }
 
+.pin-field__label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 0.55rem;
+}
+
+.pin-boxes {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.65rem;
+}
+
+.pin-box {
+  width: 100%;
+  min-height: 56px;
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.2rem;
+}
+
+.pin-hint {
+  text-align: center;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
 .connection-error {
   min-height: 100vh;
   display: grid;
