@@ -191,38 +191,40 @@ export default function Dashboard() {
   return (
     <div className="home fade-in">
       <header className="home-topbar">
-        <div className="home-topbar__left">
-          <div>
-            <p className="home-brand">
-              {APP_NAME} <span aria-hidden="true">❤️</span>
-            </p>
-            <p className="home-couple">
-              {PERSON_ONE_NAME} & {PERSON_TWO_NAME}
-            </p>
-          </div>
-          <span className="pill pill--days">{daysTogether} Days</span>
+        <div className="home-topbar__brand">
+          <p className="home-brand">
+            {APP_NAME} <span aria-hidden="true">❤️</span>
+          </p>
+          <p className="home-couple">
+            {PERSON_ONE_NAME} & {PERSON_TWO_NAME}
+          </p>
         </div>
-        <Link to="/profile" className="home-topbar__avatar" aria-label="Profile">
-          <Avatar name={personName} />
-        </Link>
+        <div className="home-topbar__right">
+          <span className="pill pill--days">{daysTogether} Days</span>
+          <Link to="/profile" className="home-topbar__avatar" aria-label="Profile">
+            <Avatar name={personName} />
+          </Link>
+        </div>
       </header>
 
       <section className="hero-card">
         <div className="hero-card__main">
-          <p className="hero-kicker">Home</p>
+          <div className="hero-card__meta">
+            <p className="hero-kicker">Home</p>
+            <span className="pill pill--ghost">
+              {SPACE_LOCATION} · {SPACE_WEATHER}
+            </span>
+          </div>
           <h1>
             {getGreeting(personName)} <span aria-hidden="true">❤️</span>
           </h1>
-          <p className="muted">
+          <p className="muted hero-sub">
             {partnerActivityAt
               ? `${partnerName} was active ${formatRelativeTime(partnerActivityAt)}`
               : `${partnerName} hasn't checked in yet`}
           </p>
         </div>
         <div className="hero-card__badges">
-          <span className="pill">
-            {SPACE_LOCATION} · {SPACE_WEATHER}
-          </span>
           <span className="pill pill--soft">Day {daysTogether} Together</span>
         </div>
       </section>
@@ -258,6 +260,7 @@ export default function Dashboard() {
         </section>
 
         <section className="mood-stack">
+          <p className="section-label">Daily Mood Pulse</p>
           <div className="panel mood-checkin">
             <div className="mood-checkin__head">
               <h2>Your Mood</h2>
@@ -274,7 +277,9 @@ export default function Dashboard() {
                   disabled={savingMood}
                   onClick={() => saveMood(mood)}
                 >
-                  <span aria-hidden="true">{mood.emoji}</span>
+                  <span className="mood-chip__emoji" aria-hidden="true">
+                    {mood.emoji}
+                  </span>
                   {mood.label}
                 </button>
               ))}
@@ -316,24 +321,24 @@ export default function Dashboard() {
         </section>
       </div>
 
-      <section className="quick-nav">
+      <section className="quick-nav" aria-label="Quick links">
         <Link to="/mood" className="quick-nav__item">
           <span className="quick-nav__icon">😊</span>
-          <div>
+          <div className="quick-nav__text">
             <strong>Mood</strong>
             <p>Daily check-in</p>
           </div>
         </Link>
         <Link to="/notes" className="quick-nav__item">
           <span className="quick-nav__icon">✎</span>
-          <div>
+          <div className="quick-nav__text">
             <strong>Notes</strong>
             <p>Shared thoughts</p>
           </div>
         </Link>
         <Link to="/things-to-do" className="quick-nav__item">
           <span className="quick-nav__icon">✓</span>
-          <div>
+          <div className="quick-nav__text">
             <strong>To-Do</strong>
             <p>Plans together</p>
           </div>
@@ -341,7 +346,7 @@ export default function Dashboard() {
         </Link>
         <Link to="/memories" className="quick-nav__item">
           <span className="quick-nav__icon">◇</span>
-          <div>
+          <div className="quick-nav__text">
             <strong>Memories</strong>
             <p>Little moments</p>
           </div>
