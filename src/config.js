@@ -7,7 +7,7 @@ export const PERSON_TWO_NAME = 'Diah'
 export const STORAGE_KEY_PERSON = 'current_person'
 
 /** Relationship start / anniversary (Asia/Jakarta business date) */
-export const ANNIVERSARY_DATE = '2024-05-30'
+export const ANNIVERSARY_DATE = '2026-09-04'
 
 export const RELATIONSHIP_VIBE = 'Cozy & In Love'
 export const TIMEZONE = 'Asia/Jakarta'
