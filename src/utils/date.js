@@ -94,12 +94,14 @@ export function formatTodayShort() {
 }
 
 export function pickDailyQuote(quotes) {
-  if (!quotes?.length) return ''
+  if (!quotes?.length) return { text: '', author: '' }
   const { year, month, day } = getJakartaParts()
   const start = Date.UTC(year, 0, 0)
   const now = Date.UTC(year, month - 1, day)
   const dayOfYear = Math.floor((now - start) / 86400000)
-  return quotes[dayOfYear % quotes.length]
+  const item = quotes[dayOfYear % quotes.length]
+  if (typeof item === 'string') return { text: item, author: '' }
+  return { text: item.text || '', author: item.author || '' }
 }
 
 export function formatTodayLong() {

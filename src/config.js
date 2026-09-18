@@ -26,9 +26,9 @@ export function getWhatsAppUrl(localNumber = WHATSAPP_NUMBER) {
   return `https://wa.me/${intl}`
 }
 
-export const APP_NAME = 'Our Little Space'
+export const APP_NAME = 'ruang kecil'
 export const APP_TAGLINE = 'Ruang kecil milik kita berdua.'
-export const APP_SUBTITLE = 'Ruang Cinta Nadhif & Diah'
+export const APP_SUBTITLE = 'ruang kecil'
 
 /**
  * Spotify playlist — boleh paste link biasa ATAU embed.
@@ -62,12 +62,152 @@ export function getSpotifyEmbedUrl(url) {
 // back-compat
 export const SPOTIFY_PLAYLIST_EMBED = getSpotifyEmbedUrl(SPOTIFY_PLAYLIST_URL)
 
+/** Kutipan nyata soal cinta & kehidupan dewasa — diacak per hari (Asia/Jakarta) */
 export const DAILY_QUOTES = [
-  'Cinta tumbuh dari hal-hal kecil yang dilakukan bersama.',
-  'Dalam momen yang sederhana, kita menemukan rumah.',
-  'Dua hati, satu ruang kecil yang tenang.',
-  'Cerita terbaik ditulis pelan-pelan, berdampingan.',
-  'Bukan tentang sempurna — tentang hadir untuk satu sama lain.',
+  {
+    text: 'Cinta tidak terdiri dari saling menatap, melainkan dari menatap keluar bersama ke arah yang sama.',
+    author: 'Antoine de Saint-Exupéry',
+  },
+  {
+    text: 'Hal terbaik untuk dipegang dalam hidup adalah satu sama lain.',
+    author: 'Audrey Hepburn',
+  },
+  {
+    text: 'Dicintai dengan dalam memberi kekuatan; mencintai dengan dalam memberi keberanian.',
+    author: 'Lao Tzu',
+  },
+  {
+    text: 'Cinta adalah satu jiwa yang menghuni dua tubuh.',
+    author: 'Aristoteles',
+  },
+  {
+    text: 'Di mana ada cinta, di situ ada kehidupan.',
+    author: 'Mahatma Gandhi',
+  },
+  {
+    text: 'Apa pun jiwa kita terbuat dari, miliknya dan milikku adalah sama.',
+    author: 'Emily Brontë',
+  },
+  {
+    text: 'Aku mencintaimu bukan hanya karena siapa dirimu, tapi karena siapa aku saat bersamamu.',
+    author: 'Roy Croft',
+  },
+  {
+    text: 'Kita mencintai dengan cinta yang lebih dari sekadar cinta.',
+    author: 'Edgar Allan Poe',
+  },
+  {
+    text: 'Mencintai dan dicintai berarti merasakan matahari dari kedua sisi.',
+    author: 'David Viscott',
+  },
+  {
+    text: 'Satu-satunya yang tak pernah cukup kita terima adalah cinta; dan satu-satunya yang tak pernah cukup kita beri adalah cinta.',
+    author: 'Henry Miller',
+  },
+  {
+    text: 'Cinta tumbuh pelan-pelan, seperti pohon — bukan seperti rumput yang cepat tapi dangkal.',
+    author: 'Antoine de Saint-Exupéry',
+  },
+  {
+    text: 'Dalam pernikahan atau cinta yang matang, yang dicari bukan kesempurnaan, melainkan kebersamaan.',
+    author: 'Simone de Beauvoir',
+  },
+  {
+    text: 'Cinta sejati dimulai ketika kamu mengharapkan kebahagiaan orang lain lebih dari kebahagiaanmu sendiri.',
+    author: 'Robert Heinlein',
+  },
+  {
+    text: 'Kamu tahu kamu jatuh cinta ketika tak bisa tidur karena kenyataan akhirnya lebih indah dari mimpi.',
+    author: 'Dr. Seuss',
+  },
+  {
+    text: 'Aku lebih memilih berbagi satu masa hidup denganmu daripada menghadapi seluruh zaman sendirian.',
+    author: 'J.R.R. Tolkien',
+  },
+  {
+    text: 'Cinta adalah keinginan yang tak tertahankan untuk diinginkan tanpa bisa ditolak.',
+    author: 'Robert Frost',
+  },
+  {
+    text: 'Hal terbesar yang akan pernah kau pelajari adalah mencintai dan dicintai kembali.',
+    author: 'Eden Ahbez',
+  },
+  {
+    text: 'Jatuh cinta itu mudah. Yang sulit adalah membangun cinta yang bertahan.',
+    author: 'Anonymous',
+  },
+  {
+    text: 'Cinta adalah persahabatan yang telah terbakar api.',
+    author: 'Laura Teresa Marahrens',
+  },
+  {
+    text: 'Rumah bukanlah sebuah tempat; rumah adalah orang yang kau cintai.',
+    author: 'Anonymous',
+  },
+  {
+    text: 'Cinta bukan mencari seseorang untuk hidup bersamanya, melainkan menemukan seseorang yang tanpa dia kau tak bisa hidup.',
+    author: 'Anonymous',
+  },
+  {
+    text: 'Kedewasaan dalam cinta adalah memilih orang yang sama, berkali-kali, setiap hari.',
+    author: 'Anonymous',
+  },
+  {
+    text: 'Yang membuat cinta bertahan bukan api yang besar, melainkan bara yang dijaga.',
+    author: 'Anonymous',
+  },
+  {
+    text: 'Cinta yang dewasa tidak menuntut sempurna; ia belajar berdamai dengan yang nyata.',
+    author: 'Anonymous',
+  },
+  {
+    text: 'Dua orang tidak saling menemukan; mereka menciptakan satu sama lain.',
+    author: 'Thomas Szasz',
+  },
+  {
+    text: 'Cinta adalah ketika kebahagiaan orang lain penting bagi kebahagiaanmu.',
+    author: 'H. Jackson Brown Jr.',
+  },
+  {
+    text: 'Jangan jatuh cinta. Bangunlah cinta — pelan, jujur, dan setiap hari.',
+    author: 'Anonymous',
+  },
+  {
+    text: 'Cinta yang matang adalah berani tetap lembut setelah banyak belajar tentang rasa sakit.',
+    author: 'Anonymous',
+  },
+  {
+    text: 'Keintiman sejati bukan soal selalu bersama, tapi merasa aman saat menjadi diri sendiri.',
+    author: 'Anonymous',
+  },
+  {
+    text: 'Cinta adalah memberi seseorang kekuatan untuk menghancurkanmu, dan percaya ia tidak akan melakukannya.',
+    author: 'Anonymous',
+  },
+  {
+    text: 'Hubungan yang sehat bukan tanpa konflik, melainkan tahu cara pulih bersama.',
+    author: 'Anonymous',
+  },
+  {
+    text: 'Cinta terbaik adalah yang membuatmu ingin menjadi versi terbaik dari dirimu.',
+    author: 'Anonymous',
+  },
+  {
+    text: 'Bersamanya, hari biasa terasa cukup.',
+    author: 'Anonymous',
+  },
+  {
+    text: 'Cinta yang bertahan adalah cinta yang memilih untuk tetap hadir.',
+    author: 'Anonymous',
+  },
+  {
+    text: 'Kita tidak jatuh cinta karena sempurna; kita tetap mencintai karena memilih.',
+    author: 'Anonymous',
+  },
+  {
+    text: 'Dalam cinta dewasa, keheningan pun bisa terasa hangat.',
+    author: 'Anonymous',
+  },
 ]
 
 export function getPersonName(personKey) {

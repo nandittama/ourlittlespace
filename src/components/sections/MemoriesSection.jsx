@@ -122,8 +122,8 @@ const MemoriesSection = forwardRef(function MemoriesSection({ memories, onChange
 
   return (
     <Section id="memories" title="Little Memories" subtitle="Beberapa momen layak dikenang.">
-      <div className="section-actions row-between">
-        <div className="row-between" style={{ gap: '0.5rem', flexWrap: 'wrap' }}>
+      <div className="section-actions memory-actions">
+        <div className="memory-actions__main">
           <button type="button" className="btn btn--secondary" onClick={() => setOpen((v) => !v)}>
             {open ? 'Batal' : 'Tambah memory'}
           </button>

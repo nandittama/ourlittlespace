@@ -1,7 +1,7 @@
 {
-  "name": "Our Little Space",
-  "short_name": "Little Space",
-  "description": "A little place for us.",
+  "name": "ruang kecil",
+  "short_name": "ruang kecil",
+  "description": "Ruang kecil milik kita berdua.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#FFF9F7",
